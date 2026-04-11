@@ -9,11 +9,17 @@ A modern, real-time forum platform — completely rewritten from legacy PHP to a
 ## ✨ Highlights
 
 - 🔐 **Bank-Level Security** — Compulsory 2FA (Google Authenticator), OTP email verification, disposable email blocking
-- ⚡ **Real-Time** — Socket.IO powered DMs, live notifications, and instant reactions
+- ⚡ **Real-Time** — Socket.IO powered DMs with typing indicators, live notifications, and instant reactions
 - 🛡️ **Admin Panel** — Role-based access control, content reporting, IP firewall, full audit logs
 - 🔍 **Full-Text Search** — Search threads and posts instantly via PostgreSQL
+- ✉️ **Private Messaging** — Real-time DMs with read receipts and typing indicators
 - 📊 **Polls & Surveys** — Embedded polls with multi-choice and double-vote prevention
+- 🔔 **Notification Center** — Persistent notification page with type-coded badges
+- 📝 **Post Editing** — Edit your posts with full version history tracking
+- 🔑 **Forgot Password** — Secure token-based password reset via email
 - 📱 **PWA Ready** — Installable as a native app on any device
+- 🏆 **User Ranks** — Auto-calculated progression: Newbie → Active → Regular → Veteran → Elder → Legend
+- 🗑️ **GDPR Compliant** — Users can fully delete their account and all associated data
 - 🧩 **Plugin Engine** — Hot-pluggable addon system (mentions, reactions, badges, link previews, dark mode, and more)
 
 > For a full breakdown of all features, see [features.md](features.md).
@@ -276,7 +282,7 @@ node index.js
 ```
 
 On the first run, Sequelize will automatically create all database tables:
-`Users`, `Conversations`, `Channels`, `Posts`, `Messages`, `Reports`, `AuditLogs`, `Polls`, `Bookmarks`, `Drafts`, `BannedIPs`
+`Users`, `Conversations`, `Channels`, `Posts`, `Messages`, `Reports`, `AuditLogs`, `Polls`, `Bookmarks`, `Drafts`, `BannedIPs`, `Notifications`, `Subscriptions`, `PasswordResets`, `PostEdits`
 
 Visit **http://localhost:3000** in your browser.
 
@@ -315,22 +321,27 @@ node-esotalk/
 ├── middleware/
 │   └── rbac.js             # Role-based access control
 ├── models/
-│   ├── User.js             # Users (roles, 2FA, bio, avatar)
+│   ├── User.js             # Users (roles, 2FA, bio, avatar, ranks)
 │   ├── Post.js             # Posts (reactions, mentions)
+│   ├── PostEdit.js         # Post edit version history
 │   ├── Conversation.js     # Threads (tags, pins)
 │   ├── Channel.js          # Forums/Categories
 │   ├── Message.js          # Private DMs
+│   ├── Notification.js     # Persistent notifications
+│   ├── Subscription.js     # Thread follow/subscribe
 │   ├── Report.js           # Content flagging
 │   ├── AuditLog.js         # Admin action tracking
 │   ├── Poll.js             # Embedded polls
 │   ├── Bookmark.js         # Saved threads
 │   ├── Draft.js            # Auto-saved drafts
+│   ├── PasswordReset.js    # Password reset tokens
 │   └── BannedIP.js         # IP firewall
 ├── routes/
-│   ├── auth.js             # Login, Signup, OTP, 2FA, OAuth
-│   ├── forum.js            # Home, Search, Tags, Polls, Bookmarks
+│   ├── auth.js             # Login, Signup, OTP, 2FA, OAuth, Forgot Password, GDPR
+│   ├── forum.js            # Home, Search, Tags, Polls, Bookmarks, Post Edit/Delete, Subscriptions
 │   ├── admin.js            # Admin panel, reports, bans, audit
 │   ├── messages.js         # Private messaging
+│   ├── notifications.js    # Notification center
 │   ├── uploads.js          # File upload API
 │   └── profile.js          # User profiles, avatars, drafts
 ├── views/                  # EJS templates
@@ -352,6 +363,8 @@ node-esotalk/
 Registration:  Signup → Disposable Email Check → OTP Email → Verify OTP → Scan 2FA QR → Verify Token → Account Created
 Local Login:   Email/Password → 2FA Token → Session Created
 OAuth Login:   Google/GitHub → (New? → 2FA Setup) or (Returning? → 2FA Token) → Session Created
+Forgot Password: Enter Email → Receive Reset Link (1hr expiry) → Set New Password → Login
+Account Delete: Settings → Type DELETE → All data permanently removed (GDPR)
 ```
 
 ---
