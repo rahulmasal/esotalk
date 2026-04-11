@@ -1,0 +1,38 @@
+{
+  "name": "esotalk",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "body-parser": "^2.2.2",
+    "connect-redis": "^9.0.0",
+    "connect-session-sequelize": "^8.0.6",
+    "dompurify": "^3.3.3",
+    "dotenv": "^17.4.1",
+    "ejs": "^5.0.1",
+    "express": "^5.2.1",
+    "express-session": "^1.19.0",
+    "jsdom": "^29.0.2",
+    "marked": "^18.0.0",
+    "mysql2": "^3.21.1",
+    "open-graph-scraper": "^6.11.0",
+    "passport": "^0.7.0",
+    "passport-github2": "^0.1.12",
+    "passport-google-oauth20": "^2.0.0",
+    "passport-local": "^1.0.0",
+    "pg": "^8.20.0",
+    "pg-hstore": "^2.3.4",
+    "redis": "^5.11.0",
+    "sequelize": "^6.37.8",
+    "socket.io": "^4.8.3",
+    "sqlite3": "^6.0.1"
+  }
+}

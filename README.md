@@ -1,43 +1,57 @@
-## esoTalk – Fat-free forum software
+# esoTalk Node.js Edition (esoTalk Plus)
 
-**Help develop *Flarum*, esoTalk's successor. [Flarum on GitHub &raquo;](https://github.com/flarum/core)**
+esoTalk Plus is a modernized, extremely fast, free, open-source forum software upgraded from its legacy PHP roots to a fully real-time Node.js/Express.js architecture.
 
-esoTalk is a free, open-source forum software package built with PHP and MySQL. It is designed to be:
+It utilizes the original, incredibly simple esoTalk UI (HTML/CSS) but replaces the backend with a powerful PostgreSQL, Redis, and Socket.IO stack.
 
- - **Fast.** esoTalk's code was architectured to have little overhead and to be as efficient as possible.
- - **Simple.** All of esoTalk's interfaces are designed around simplicity, ease-of-use, and speed.
- - **Powerful.** Despite its simplicity, a large array of [plugins](http://esotalk.org/plugins) and [skins](http://esotalk.org/skins) are available to extend the functionality of esoTalk.
+## System Requirements
 
-esoTalk is developed by Toby Zerner in memory of his brother, Simon. 
+- **Node.js** (v18 or higher recommended)
+- **PostgreSQL** (v14 or higher)
+- **Redis** (v6 or higher)
 
-### Donate
+## Installation Guide
 
-I've put many hundreds of hours and a lot of love into developing and maintaining esoTalk. If you have benefitted from it, why not consider [donating some schrapnel](http://esotalk.org/donate)? #feedtoby
+### 1. Database Setup
+Ensure that **PostgreSQL** and **Redis** are running on your system locally:
+- PostgreSQL default port: `5432`
+- Redis default port: `6379`
 
-### System Requirements
+Create a new PostgreSQL database (e.g. `esotalk`).
 
-esoTalk requires **PHP 5.3+** and a modern version of **MySQL**.
+### 2. Install Dependencies
+Navigate to the application subdirectory and install the required Node modules:
+```bash
+cd node-esotalk
+npm install
+```
 
-The PHP **gd extension** is required to support avatar uploading.
+### 3. Environment Variables
+Create a `.env` file within the `node-esotalk` directory. Populate it with your secrets and keys for the database, session, and any OAuth providers.
+```env
+# Server
+PORT=3000
 
-esoTalk has only been tested on **Apache** and **lighttpd**. If you encounter a problem specific to any other web server, please [create an issue](https://github.com/esotalk/esoTalk/issues).
+# Security
+SESSION_SECRET=your_super_secret_session_key
 
-### Installation
+# External Services (If using OAuth)
+GOOGLE_CLIENT_ID=your_google_id
+GOOGLE_CLIENT_SECRET=your_google_secret
+GITHUB_CLIENT_ID=your_github_id
+GITHUB_CLIENT_SECRET=your_github_secret
+```
+*(If no Redis URL is provided via `REDIS_URL`, it will attempt to connect to `redis://localhost:6379`.)*
 
-Installing esoTalk is super easy. In brief, simply:
+### 4. Run the Server
+Simply start the node server. On the first run, Sequelize will seamlessly sync your PostgreSQL database and create the `Users`, `Conversations`, `Channels`, and `Posts` tables automatically.
+```bash
+node index.js
+```
+Visit http://localhost:3000 in your browser.
 
-1. [Download esoTalk.](http://esotalk.org/download)
-2. Extract and upload the files to your PHP-enabled web server.
-3. Visit the location in your web browser and follow the instructions in the installer.
-
-### Upgrading
-
-To upgrade esoTalk from an older version, simply:
-
-1. [Download](http://esotalk.org/download) the latest version of esoTalk.
-2. Extract and upload all of the files to your web-server, overwriting old ones. (Be careful that you don't lose custom plugins, skins, and languages you've uploaded to the addons directory, though!)
-3. Visit **your-forum.com/?p=upgrade** in your web browser and watch esoTalk complete the upgrade.
-
-### Troubleshooting
-
-If you are having problems installing esoTalk, view the [Troubleshooting](http://esotalk.org/docs/debug) documentation.
+## Features
+- **Legacy UI Maintained:** The sleek and highly optimized UI originally created by Toby Zerner has been fully restored and translated to EJS templates.
+- **Enterprise Databases:** Fully backed by PostgreSQL for persistence and Redis for bullet-proof sessions and memory management.
+- **Unified Authentication:** Out of the box support for traditional Email login alongside Google and GitHub OAuth using Passport.js.
+- **Socket.IO Integration:** Built with real-time foundations, enabling instant updates for Modern UI dynamics.

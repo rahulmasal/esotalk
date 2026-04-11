@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8'>
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/css/base.css">
+    <style>
+        .auth-container { max-width: 400px; margin: 40px auto; padding: 20px; background: #fff; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); text-align: center;}
+        .auth-container h2 { margin-bottom: 20px; }
+        .auth-btn { display: block; width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 4px; text-decoration: none; color: white; border: none; font-weight: bold; cursor: pointer; }
+        .btn-google { background-color: #DB4437; }
+        .btn-github { background-color: #333; }
+        .btn-local { background-color: #28a745; }
+        hr { border: 1px solid #eee; margin: 20px 0; }
+        input[type="text"], input[type="email"], input[type="password"] { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+    </style>
+</head>
+<body class="forum-index">
+    <div id='wrapper'>
+        <div id='hdr'><div id='hdr-content'><div id='hdr-inner'><h1 id='forumTitle'><a href='/'>esoTalk Plus</a></h1></div></div></div>
+        
+        <div id='body'>
+            <div id='body-content'>
+                <div class="auth-container">
+                    <h2>Create an Account</h2>
+                    
+                    <form action="/auth/signup" method="POST">
+                        <input type="text" name="username" placeholder="Username" required>
+                        <input type="email" name="email" placeholder="Email Address" required>
+                        <input type="password" name="password" placeholder="Password" required>
+                        <button type="submit" class="auth-btn btn-local">Sign up with Email</button>
+                    </form>
+
+                    <hr>
+                    <p>Or sign up using:</p>
+                    <a href="/auth/google" class="auth-btn btn-google">Sign up with Google</a>
+                    <a href="/auth/github" class="auth-btn btn-github">Sign up with GitHub</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
