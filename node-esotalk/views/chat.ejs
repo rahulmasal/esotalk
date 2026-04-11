@@ -42,9 +42,12 @@
                         </div>
                     <% }); %>
                 </div>
+                <div id="typingIndicator" style="color:#888; font-size:0.85em; padding:4px 0; display:none;">
+                    <em><span id="typingName"></span> is typing...</em>
+                </div>
                 <form action="/messages/send" method="POST" class="chat-input">
                     <input type="hidden" name="receiverId" value="<%= partner.id %>">
-                    <textarea name="content" rows="2" placeholder="Type a message..." required></textarea>
+                    <textarea name="content" id="msgInput" rows="2" placeholder="Type a message..." required></textarea>
                     <button type="submit">Send</button>
                 </form>
             </div>
@@ -53,7 +56,14 @@
     <script src="/socket.io/socket.io.js"></script>
     <script>
         const socket = io();
-        socket.emit('joinRoom', '<%= user.id %>');
+        const userId = '<%= user.id %>';
+        const partnerId = '<%= partner.id %>';
+        const userName = '<%= user.username %>';
+
+        socket.emit('joinRoom', userId);
+        socket.emit('setOnline', userId);
+
+        // Receive messages
         socket.on('newMessage', (msg) => {
             const div = document.createElement('div');
             div.className = 'message received';
@@ -61,6 +71,28 @@
             document.getElementById('chatMessages').appendChild(div);
             document.getElementById('chatMessages').scrollTop = document.getElementById('chatMessages').scrollHeight;
         });
+
+        // Typing indicators
+        let typingTimeout;
+        const msgInput = document.getElementById('msgInput');
+        
+        msgInput.addEventListener('input', () => {
+            socket.emit('typing', { receiverId: partnerId, senderId: userId, senderName: userName });
+            clearTimeout(typingTimeout);
+            typingTimeout = setTimeout(() => {
+                socket.emit('stopTyping', { receiverId: partnerId, senderId: userId });
+            }, 2000);
+        });
+
+        socket.on('userTyping', (data) => {
+            document.getElementById('typingIndicator').style.display = 'block';
+            document.getElementById('typingName').textContent = data.senderName;
+        });
+
+        socket.on('userStopTyping', () => {
+            document.getElementById('typingIndicator').style.display = 'none';
+        });
+
         // Auto-scroll to bottom
         document.getElementById('chatMessages').scrollTop = document.getElementById('chatMessages').scrollHeight;
     </script>

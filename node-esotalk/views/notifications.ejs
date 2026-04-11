@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8'>
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/css/base.css">
+    <style>
+        .notif-container { max-width: 700px; margin: 20px auto; padding: 20px; }
+        .notif-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .notif-item { display: flex; align-items: center; padding: 12px; border-bottom: 1px solid #eee; text-decoration: none; color: inherit; }
+        .notif-item:hover { background: #f8f9fa; }
+        .notif-item.unread { background: #e8f4fd; }
+        .notif-avatar { width: 35px; height: 35px; border-radius: 50%; margin-right: 12px; object-fit: cover; }
+        .notif-info { flex: 1; }
+        .notif-info p { margin: 0; }
+        .notif-time { color: #aaa; font-size: 0.8em; }
+        .notif-type { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 0.7em; color: white; margin-right: 6px; }
+        .type-mention { background: #007bff; }
+        .type-reaction { background: #ff6b6b; }
+        .type-reply { background: #28a745; }
+        .type-dm { background: #6f42c1; }
+        .type-system { background: #6c757d; }
+        .type-badge { background: #ffc107; color: #333; }
+        .btn-clear { padding: 6px 14px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        .empty { text-align: center; color: #999; padding: 40px; }
+    </style>
+</head>
+<body class="forum-index">
+    <div id='wrapper'>
+        <div id='hdr'><div id='hdr-content'><div id='hdr-inner'>
+            <h1 id='forumTitle'><a href='/'>esoTalk Plus</a></h1>
+            <ul id='mainMenu'><li><a href='/'>Forum</a></li><li><a href='/notifications'>🔔</a></li></ul>
+        </div></div></div>
+        <div id='body'><div id='body-content'>
+            <div class="notif-container">
+                <div class="notif-header">
+                    <h2>🔔 Notifications</h2>
+                    <% if (notifications.length > 0) { %>
+                        <form action="/notifications/clear" method="POST">
+                            <button class="btn-clear">Clear All</button>
+                        </form>
+                    <% } %>
+                </div>
+
+                <% if (notifications.length === 0) { %>
+                    <div class="empty">No notifications yet!</div>
+                <% } %>
+
+                <% notifications.forEach(n => { %>
+                    <a href="<%= n.link || '#' %>" class="notif-item <%= n.isRead ? '' : 'unread' %>">
+                        <img src="<%= (n.actor && n.actor.avatarUrl) ? n.actor.avatarUrl : '/img/default-avatar.png' %>" class="notif-avatar">
+                        <div class="notif-info">
+                            <p>
+                                <span class="notif-type type-<%= n.type %>"><%= n.type %></span>
+                                <%= n.message %>
+                            </p>
+                            <span class="notif-time"><%= new Date(n.createdAt).toLocaleString() %></span>
+                        </div>
+                    </a>
+                <% }); %>
+            </div>
+        </div></div>
+    </div>
+</body>
+</html>

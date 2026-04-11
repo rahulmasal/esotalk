@@ -20,6 +20,10 @@ const AuditLog = require('./models/AuditLog');
 const Poll = require('./models/Poll');
 const Bookmark = require('./models/Bookmark');
 const Draft = require('./models/Draft');
+const Notification = require('./models/Notification');
+const Subscription = require('./models/Subscription');
+const PasswordReset = require('./models/PasswordReset');
+const PostEdit = require('./models/PostEdit');
 const bodyParser = require('body-parser');
 const path = require('path');
 
@@ -106,6 +110,21 @@ io.on('connection', (socket) => {
   socket.on('joinRoom', (userId) => {
     socket.join(`user_${userId}`);
   });
+
+  // Online status tracking
+  socket.on('setOnline', (userId) => {
+    socket.userId = userId;
+    socket.broadcast.emit('userOnline', userId);
+  });
+
+  // Typing indicators
+  socket.on('typing', (data) => {
+    io.to(`user_${data.receiverId}`).emit('userTyping', { senderId: data.senderId, senderName: data.senderName });
+  });
+
+  socket.on('stopTyping', (data) => {
+    io.to(`user_${data.receiverId}`).emit('userStopTyping', { senderId: data.senderId });
+  });
   
   socket.on('disconnect', () => {
     console.log('User disconnected');
@@ -128,6 +147,7 @@ app.use((req, res, next) => {
 app.use('/auth', authLimiter, require('./routes/auth'));
 app.use('/admin', require('./routes/admin'));
 app.use('/messages', require('./routes/messages'));
+app.use('/notifications', require('./routes/notifications'));
 app.use('/upload', require('./routes/uploads'));
 app.use('/profile', require('./routes/profile'));
 app.use('/', globalLimiter, require('./routes/forum'));

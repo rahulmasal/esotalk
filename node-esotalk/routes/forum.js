@@ -188,5 +188,120 @@ router.get('/api/posts', async (req, res) => {
   }
 });
 
-module.exports = router;
+// ──────────────────────────────────────
+// POST EDITING WITH HISTORY
+// ──────────────────────────────────────
+const PostEdit = require('../models/PostEdit');
 
+router.post('/post/:id/edit', requireAuth, async (req, res) => {
+  try {
+    const post = await Post.findByPk(req.params.id);
+    if (!post) return res.status(404).json({ error: 'Post not found' });
+    if (post.memberId !== req.user.id && req.user.role === 'member') {
+      return res.status(403).json({ error: 'Not authorized' });
+    }
+
+    // Save edit history
+    await PostEdit.create({
+      postId: post.id,
+      previousContent: post.content,
+      editorId: req.user.id
+    });
+
+    post.content = req.body.content;
+    await post.save();
+    res.json({ success: true });
+  } catch (err) {
+    res.json({ success: false, error: err.message });
+  }
+});
+
+// View edit history
+router.get('/post/:id/history', async (req, res) => {
+  try {
+    const edits = await PostEdit.findAll({
+      where: { postId: req.params.id },
+      include: [{ model: User, as: 'editor', attributes: ['username'] }],
+      order: [['editedAt', 'DESC']]
+    });
+    res.json({ edits });
+  } catch (err) {
+    res.json({ edits: [] });
+  }
+});
+
+// ──────────────────────────────────────
+// POST DELETION (Own Posts)
+// ──────────────────────────────────────
+router.delete('/post/:id', requireAuth, async (req, res) => {
+  try {
+    const post = await Post.findByPk(req.params.id);
+    if (!post) return res.status(404).json({ error: 'Post not found' });
+    if (post.memberId !== req.user.id && req.user.role === 'member') {
+      return res.status(403).json({ error: 'Not authorized' });
+    }
+    await post.destroy();
+    res.json({ success: true });
+  } catch (err) {
+    res.json({ success: false, error: err.message });
+  }
+});
+
+// ──────────────────────────────────────
+// THREAD SUBSCRIPTIONS (Follow)
+// ──────────────────────────────────────
+const Subscription = require('../models/Subscription');
+const Notification = require('../models/Notification');
+
+router.post('/subscribe/:conversationId', requireAuth, async (req, res) => {
+  try {
+    const exists = await Subscription.findOne({
+      where: { userId: req.user.id, conversationId: req.params.conversationId }
+    });
+    if (exists) {
+      await exists.destroy();
+      res.json({ success: true, subscribed: false });
+    } else {
+      await Subscription.create({ userId: req.user.id, conversationId: req.params.conversationId });
+      res.json({ success: true, subscribed: true });
+    }
+  } catch (err) {
+    res.json({ success: false, error: err.message });
+  }
+});
+
+// Check subscription status
+router.get('/subscribe/:conversationId/status', requireAuth, async (req, res) => {
+  try {
+    const sub = await Subscription.findOne({
+      where: { userId: req.user.id, conversationId: req.params.conversationId }
+    });
+    res.json({ subscribed: !!sub });
+  } catch (err) {
+    res.json({ subscribed: false });
+  }
+});
+
+// ──────────────────────────────────────
+// USER RANK CALCULATOR
+// ──────────────────────────────────────
+function getUserRank(postCount) {
+  if (postCount >= 500) return '🏆 Legend';
+  if (postCount >= 200) return '⭐ Elder';
+  if (postCount >= 100) return '🔥 Veteran';
+  if (postCount >= 50) return '💎 Regular';
+  if (postCount >= 10) return '🌱 Active';
+  return '👋 Newbie';
+}
+
+// API: Get user rank
+router.get('/api/user/:id/rank', async (req, res) => {
+  try {
+    const postCount = await Post.count({ where: { memberId: req.params.id } });
+    res.json({ rank: getUserRank(postCount), postCount });
+  } catch (err) {
+    res.json({ rank: '👋 Newbie', postCount: 0 });
+  }
+});
+
+module.exports = router;

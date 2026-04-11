@@ -239,6 +239,139 @@ router.get('/google/callback', handleOAuthCallback('google'));
 router.get('/github', passport.authenticate('github', { scope: ['user:email'] }));
 router.get('/github/callback', handleOAuthCallback('github'));
 
+// ──────────────────────────────────────
+// FORGOT PASSWORD FLOW
+// ──────────────────────────────────────
+const crypto = require('crypto');
+const PasswordReset = require('../models/PasswordReset');
+
+router.get('/forgot-password', (req, res) => {
+    res.render('forgot-password', { title: 'Forgot Password' });
+});
+
+router.post('/forgot-password', async (req, res) => {
+    try {
+        const { email } = req.body;
+        const user = await User.findOne({ where: { email } });
+        
+        if (!user) {
+            return res.render('forgot-password', { title: 'Forgot Password', error: 'No account found with that email.' });
+        }
+
+        // Generate secure random token
+        const token = crypto.randomBytes(32).toString('hex');
+        const expiresAt = new Date(Date.now() + 3600000); // 1 hour
+
+        await PasswordReset.create({ email, token, expiresAt });
+
+        const resetLink = `${req.protocol}://${req.get('host')}/auth/reset-password/${token}`;
+        
+        console.log(`\n\n=== PASSWORD RESET LINK: ${resetLink} ===\n\n`);
+        
+        if (process.env.SMTP_USER) {
+            await transporter.sendMail({
+                from: '"esoTalk Plus" <noreply@esotalkplus.com>',
+                to: email,
+                subject: 'Reset your esoTalk Plus Password',
+                html: `<p>Click the link below to reset your password. This link expires in 1 hour.</p><p><a href="${resetLink}">${resetLink}</a></p>`
+            });
+        }
+
+        res.render('forgot-password', { title: 'Forgot Password', success: 'If that email exists, a reset link has been sent.' });
+    } catch (err) {
+        console.error(err);
+        res.render('forgot-password', { title: 'Forgot Password', error: 'Something went wrong. Try again.' });
+    }
+});
+
+router.get('/reset-password/:token', async (req, res) => {
+    try {
+        const reset = await PasswordReset.findOne({ 
+            where: { token: req.params.token, used: false } 
+        });
+        
+        if (!reset || new Date() > reset.expiresAt) {
+            return res.render('forgot-password', { title: 'Forgot Password', error: 'Invalid or expired reset link.' });
+        }
+
+        res.render('reset-password', { title: 'Reset Password', token: req.params.token });
+    } catch (err) {
+        console.error(err);
+        res.redirect('/auth/forgot-password');
+    }
+});
+
+router.post('/reset-password/:token', async (req, res) => {
+    try {
+        const reset = await PasswordReset.findOne({ 
+            where: { token: req.params.token, used: false } 
+        });
+        
+        if (!reset || new Date() > reset.expiresAt) {
+            return res.render('forgot-password', { title: 'Forgot Password', error: 'Invalid or expired reset link.' });
+        }
+
+        const { password, confirmPassword } = req.body;
+        if (password !== confirmPassword) {
+            return res.render('reset-password', { title: 'Reset Password', token: req.params.token, error: 'Passwords do not match.' });
+        }
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+        await User.update({ password: hashedPassword }, { where: { email: reset.email } });
+        
+        reset.used = true;
+        await reset.save();
+
+        res.redirect('/auth/login');
+    } catch (err) {
+        console.error(err);
+        res.redirect('/auth/forgot-password');
+    }
+});
+
+// ──────────────────────────────────────
+// ACCOUNT DELETION (GDPR)
+// ──────────────────────────────────────
+router.get('/delete-account', (req, res) => {
+    if (!req.isAuthenticated()) return res.redirect('/auth/login');
+    res.render('delete-account', { title: 'Delete Account' });
+});
+
+router.post('/delete-account', async (req, res) => {
+    if (!req.isAuthenticated()) return res.redirect('/auth/login');
+    try {
+        const { confirmation } = req.body;
+        if (confirmation !== 'DELETE') {
+            return res.render('delete-account', { title: 'Delete Account', error: 'You must type DELETE to confirm.' });
+        }
+
+        const userId = req.user.id;
+        
+        // Cascade delete user data
+        const Post = require('../models/Post');
+        const Message = require('../models/Message');
+        const Notification = require('../models/Notification');
+        const Bookmark = require('../models/Bookmark');
+        const Draft = require('../models/Draft');
+
+        await Post.destroy({ where: { memberId: userId } });
+        await Message.destroy({ where: { senderId: userId } });
+        await Message.destroy({ where: { receiverId: userId } });
+        await Notification.destroy({ where: { recipientId: userId } });
+        await Bookmark.destroy({ where: { userId } });
+        await Draft.destroy({ where: { userId } });
+        await User.destroy({ where: { id: userId } });
+
+        req.logout((err) => {
+            req.session.destroy();
+            res.redirect('/');
+        });
+    } catch (err) {
+        console.error(err);
+        res.render('delete-account', { title: 'Delete Account', error: 'Deletion failed. Contact support.' });
+    }
+});
+
 // Logout
 router.get('/logout', (req, res, next) => {
   req.logout((err) => {
@@ -248,3 +381,4 @@ router.get('/logout', (req, res, next) => {
 });
 
 module.exports = router;
+

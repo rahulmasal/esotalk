@@ -16,6 +16,7 @@
     "connect-redis": "^9.0.0",
     "connect-session-sequelize": "^8.0.6",
     "cookie-parser": "^1.4.7",
+    "crypto": "^1.0.1",
     "csrf-csrf": "^4.0.3",
     "disposable-email-domains": "^1.0.62",
     "dompurify": "^3.3.3",
