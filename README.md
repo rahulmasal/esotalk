@@ -46,19 +46,194 @@ cd node-esotalk
 npm install
 ```
 
-### 3. Database Setup
+### 3. Install PostgreSQL (Database)
 
-Ensure **PostgreSQL** and **Redis** are running on your machine:
+PostgreSQL is the main database that stores all your users, posts, messages, and settings.
 
+<details>
+<summary><strong>🪟 Windows</strong></summary>
+
+1. Download the installer from https://www.postgresql.org/download/windows/
+2. Run the installer. During setup:
+   - Set a **password** for the `postgres` user (remember this — you'll need it for `.env`)
+   - Keep the default port as `5432`
+   - Click **Next** through the rest and finish installation
+3. Open **pgAdmin 4** (installed automatically) or open **Command Prompt** and run:
+   ```cmd
+   psql -U postgres
+   ```
+   Enter your password when prompted, then create the database:
+   ```sql
+   CREATE DATABASE esotalk;
+   \q
+   ```
+
+> **Tip:** If `psql` is not recognized, add PostgreSQL to your PATH:  
+> `C:\Program Files\PostgreSQL\16\bin` (adjust version number)
+
+</details>
+
+<details>
+<summary><strong>🍎 macOS</strong></summary>
+
+The easiest way is using Homebrew:
 ```bash
-# PostgreSQL — Create a new database
-psql -U postgres -c "CREATE DATABASE esotalk;"
+# Install Homebrew if you don't have it
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
-# Redis — Should be running on default port 6379
-redis-cli ping   # Should return PONG
+# Install PostgreSQL
+brew install postgresql@16
+
+# Start the service
+brew services start postgresql@16
+
+# Create the database
+createdb esotalk
 ```
 
-### 4. Environment Variables
+To verify it's running:
+```bash
+psql -d esotalk -c "SELECT version();"
+```
+
+</details>
+
+<details>
+<summary><strong>🐧 Ubuntu / Debian Linux</strong></summary>
+
+```bash
+# Update packages
+sudo apt update
+
+# Install PostgreSQL
+sudo apt install postgresql postgresql-contrib -y
+
+# Start the service
+sudo systemctl start postgresql
+sudo systemctl enable postgresql
+
+# Switch to the postgres user and create database
+sudo -u postgres psql -c "CREATE DATABASE esotalk;"
+
+# Set a password for the postgres user
+sudo -u postgres psql -c "ALTER USER postgres PASSWORD 'your_password_here';"
+```
+
+</details>
+
+---
+
+### 4. Install Redis (Session & Cache Store)
+
+Redis keeps your login sessions alive and powers real-time caching. Without it, users would get logged out every time the server restarts.
+
+<details>
+<summary><strong>🪟 Windows</strong></summary>
+
+Redis doesn't officially support Windows, but there are two easy options:
+
+**Option A: Using Memurai (Recommended for Beginners)**
+1. Download Memurai (Redis-compatible) from https://www.memurai.com/get-memurai
+2. Run the installer — it starts automatically as a Windows service
+3. Verify it's running:
+   ```cmd
+   memurai-cli ping
+   ```
+   Should return `PONG`
+
+**Option B: Using WSL (Windows Subsystem for Linux)**
+1. Open PowerShell as Admin and run:
+   ```powershell
+   wsl --install
+   ```
+2. Restart your computer, then open the Ubuntu terminal and run:
+   ```bash
+   sudo apt update
+   sudo apt install redis-server -y
+   sudo service redis-server start
+   redis-cli ping
+   ```
+   Should return `PONG`
+
+</details>
+
+<details>
+<summary><strong>🍎 macOS</strong></summary>
+
+```bash
+# Install via Homebrew
+brew install redis
+
+# Start the service
+brew services start redis
+
+# Verify
+redis-cli ping
+```
+Should return `PONG`
+
+</details>
+
+<details>
+<summary><strong>🐧 Ubuntu / Debian Linux</strong></summary>
+
+```bash
+# Install Redis
+sudo apt update
+sudo apt install redis-server -y
+
+# Start and enable the service
+sudo systemctl start redis-server
+sudo systemctl enable redis-server
+
+# Verify
+redis-cli ping
+```
+Should return `PONG`
+
+</details>
+
+---
+
+### 5. Install Node.js
+
+<details>
+<summary><strong>🪟 Windows</strong></summary>
+
+1. Download the LTS installer from https://nodejs.org/
+2. Run the installer — keep all defaults, make sure **"Add to PATH"** is checked
+3. Restart your terminal, then verify:
+   ```cmd
+   node --version
+   npm --version
+   ```
+
+</details>
+
+<details>
+<summary><strong>🍎 macOS</strong></summary>
+
+```bash
+brew install node
+node --version
+npm --version
+```
+
+</details>
+
+<details>
+<summary><strong>🐧 Ubuntu / Debian Linux</strong></summary>
+
+```bash
+curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+sudo apt install -y nodejs
+node --version
+npm --version
+```
+
+</details>
+
+### 6. Environment Variables
 
 Create a `.env` file inside the `node-esotalk/` directory:
 
@@ -94,7 +269,7 @@ GITHUB_CLIENT_SECRET=your_github_client_secret
 
 > **Note:** If `SMTP_USER` is not set, OTP codes will be printed to the server console for development/testing purposes.
 
-### 5. Start the Server
+### 7. Start the Server
 
 ```bash
 node index.js
@@ -105,7 +280,7 @@ On the first run, Sequelize will automatically create all database tables:
 
 Visit **http://localhost:3000** in your browser.
 
-### 6. Create an Admin User
+### 8. Create an Admin User
 
 After registering your first account, promote it to admin directly in PostgreSQL:
 
