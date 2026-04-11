@@ -1,11 +1,22 @@
-require('dotenv').config();
-const express = require('express');
-const http = require('http');
-const { Server } = require('socket.io');
-const session = require('express-session');
-const { RedisStore } = require('connect-redis');
-const { createClient } = require('redis');
-const passport = require('passport');
+const fs = require('fs');
+const path = require('path');
+
+// ──────────────────────────────────────
+// STARTUP LOGIC: SETUP WIZARD OR MAIN APP
+// ──────────────────────────────────────
+if (!fs.existsSync(path.join(__dirname, '.env'))) {
+    // Start Setup Wizard
+    require('./setupServer')();
+} else {
+    // Start Main Application
+    require('dotenv').config();
+    const express = require('express');
+    const http = require('http');
+    const { Server } = require('socket.io');
+    const session = require('express-session');
+    const { RedisStore } = require('connect-redis');
+    const { createClient } = require('redis');
+    const passport = require('passport');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const cookieParser = require('cookie-parser');
@@ -157,3 +168,4 @@ const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
+}

@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>esoTalk Plus - First Time Setup</title>
+    <link rel="stylesheet" href="/css/base.css">
+    <style>
+        body { background-color: #f4f6f9; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; }
+        .setup-container { max-width: 600px; margin: 40px auto; background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        h1 { text-align: center; color: #333; margin-top: 0; }
+        h2 { font-size: 1.2em; border-bottom: 2px solid #eee; padding-bottom: 5px; margin-top: 25px; }
+        p.intro { text-align: center; color: #666; margin-bottom: 30px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; font-weight: bold; margin-bottom: 5px; color: #555; }
+        input[type="text"], input[type="password"], input[type="number"] { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        .help-text { font-size: 0.85em; color: #888; margin-top: 2px; }
+        .btn-submit { display: block; width: 100%; padding: 12px; background: #007bff; color: white; border: none; border-radius: 4px; font-size: 1.1em; cursor: pointer; margin-top: 30px; font-weight: bold; }
+        .btn-submit:hover { background: #0056b3; }
+        .error-msg { background: #fee; color: #c00; padding: 10px; border-radius: 4px; margin-bottom: 20px; border: 1px solid #fcc; }
+    </style>
+</head>
+<body>
+    <div class="setup-container">
+        <h1>🚀 esoTalk Plus Setup</h1>
+        <p class="intro">Welcome! Let's get your forum configured. We'll verify these settings before saving.</p>
+
+        <% if (typeof error !== 'undefined' && error) { %>
+            <div class="error-msg"><strong>Error:</strong> <%= error %></div>
+        <% } %>
+
+        <form action="/" method="POST">
+            <h2>🐘 PostgreSQL Database</h2>
+            <div class="form-group">
+                <label>Host</label>
+                <input type="text" name="db_host" value="<%= data?.db_host || 'localhost' %>" required>
+            </div>
+            <div class="form-group">
+                <label>Port</label>
+                <input type="number" name="db_port" value="<%= data?.db_port || '5432' %>" required>
+            </div>
+            <div class="form-group">
+                <label>Database Name</label>
+                <input type="text" name="db_name" value="<%= data?.db_name || 'esotalk' %>" required>
+            </div>
+            <div class="form-group">
+                <label>User</label>
+                <input type="text" name="db_user" value="<%= data?.db_user || 'postgres' %>" required>
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" name="db_pass" value="<%= data?.db_pass || '' %>">
+            </div>
+
+            <h2>⚡ Redis Server</h2>
+            <div class="form-group">
+                <label>Redis URL</label>
+                <input type="text" name="redis_url" value="<%= data?.redis_url || 'redis://localhost:6379' %>" required>
+                <div class="help-text">Used for sessions and real-time caching.</div>
+            </div>
+
+            <h2>📧 SMTP Email (Optional)</h2>
+            <p style="font-size: 0.9em; color: #666; margin-top: -5px;">Required for OTP verification and password resets. Leave blank to use console logging for development.</p>
+            <div class="form-group">
+                <label>SMTP Host</label>
+                <input type="text" name="smtp_host" value="<%= data?.smtp_host || '' %>" placeholder="smtp.gmail.com">
+            </div>
+            <div class="form-group">
+                <label>SMTP Port</label>
+                <input type="number" name="smtp_port" value="<%= data?.smtp_port || '' %>" placeholder="587">
+            </div>
+            <div class="form-group">
+                <label>SMTP User</label>
+                <input type="text" name="smtp_user" value="<%= data?.smtp_user || '' %>" placeholder="user@gmail.com">
+            </div>
+            <div class="form-group">
+                <label>SMTP Password</label>
+                <input type="password" name="smtp_pass" value="<%= data?.smtp_pass || '' %>" placeholder="App Password">
+            </div>
+
+            <button type="submit" class="btn-submit">Verify & Save Installation</button>
+        </form>
+    </div>
+</body>
+</html>
