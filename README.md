@@ -1,57 +1,196 @@
-# esoTalk Node.js Edition (esoTalk Plus)
+# esoTalk Plus 🚀
 
-esoTalk Plus is a modernized, extremely fast, free, open-source forum software upgraded from its legacy PHP roots to a fully real-time Node.js/Express.js architecture.
+A modern, real-time forum platform — completely rewritten from legacy PHP to a high-performance **Node.js / Express.js** architecture.
 
-It utilizes the original, incredibly simple esoTalk UI (HTML/CSS) but replaces the backend with a powerful PostgreSQL, Redis, and Socket.IO stack.
+[![License: ISC](https://img.shields.io/badge/License-ISC-blue.svg)](https://opensource.org/licenses/ISC)
 
-## System Requirements
+---
 
-- **Node.js** (v18 or higher recommended)
-- **PostgreSQL** (v14 or higher)
-- **Redis** (v6 or higher)
+## ✨ Highlights
 
-## Installation Guide
+- 🔐 **Bank-Level Security** — Compulsory 2FA (Google Authenticator), OTP email verification, disposable email blocking
+- ⚡ **Real-Time** — Socket.IO powered DMs, live notifications, and instant reactions
+- 🛡️ **Admin Panel** — Role-based access control, content reporting, IP firewall, full audit logs
+- 🔍 **Full-Text Search** — Search threads and posts instantly via PostgreSQL
+- 📊 **Polls & Surveys** — Embedded polls with multi-choice and double-vote prevention
+- 📱 **PWA Ready** — Installable as a native app on any device
+- 🧩 **Plugin Engine** — Hot-pluggable addon system (mentions, reactions, badges, link previews, dark mode, and more)
 
-### 1. Database Setup
-Ensure that **PostgreSQL** and **Redis** are running on your system locally:
-- PostgreSQL default port: `5432`
-- Redis default port: `6379`
+> For a full breakdown of all features, see [features.md](features.md).
 
-Create a new PostgreSQL database (e.g. `esotalk`).
+---
+
+## 📋 System Requirements
+
+| Dependency | Minimum Version |
+|---|---|
+| **Node.js** | v18+ |
+| **PostgreSQL** | v14+ |
+| **Redis** | v6+ |
+
+---
+
+## 🛠️ Installation
+
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/rahulmasal/esotalk.git
+cd esotalk
+```
 
 ### 2. Install Dependencies
-Navigate to the application subdirectory and install the required Node modules:
+
 ```bash
 cd node-esotalk
 npm install
 ```
 
-### 3. Environment Variables
-Create a `.env` file within the `node-esotalk` directory. Populate it with your secrets and keys for the database, session, and any OAuth providers.
+### 3. Database Setup
+
+Ensure **PostgreSQL** and **Redis** are running on your machine:
+
+```bash
+# PostgreSQL — Create a new database
+psql -U postgres -c "CREATE DATABASE esotalk;"
+
+# Redis — Should be running on default port 6379
+redis-cli ping   # Should return PONG
+```
+
+### 4. Environment Variables
+
+Create a `.env` file inside the `node-esotalk/` directory:
+
 ```env
-# Server
+# ── Server ──
 PORT=3000
 
-# Security
-SESSION_SECRET=your_super_secret_session_key
+# ── Security ──
+SESSION_SECRET=your_super_secret_session_key_here
 
-# External Services (If using OAuth)
-GOOGLE_CLIENT_ID=your_google_id
-GOOGLE_CLIENT_SECRET=your_google_secret
-GITHUB_CLIENT_ID=your_github_id
-GITHUB_CLIENT_SECRET=your_github_secret
+# ── Database (PostgreSQL) ──
+DB_NAME=esotalk
+DB_USER=postgres
+DB_PASS=your_postgres_password
+DB_HOST=localhost
+DB_PORT=5432
+
+# ── Redis ──
+REDIS_URL=redis://localhost:6379
+
+# ── SMTP (for OTP emails) ──
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=your-email@gmail.com
+SMTP_PASS=your-app-password
+
+# ── OAuth (Optional — Google & GitHub SSO) ──
+GOOGLE_CLIENT_ID=your_google_client_id
+GOOGLE_CLIENT_SECRET=your_google_client_secret
+GITHUB_CLIENT_ID=your_github_client_id
+GITHUB_CLIENT_SECRET=your_github_client_secret
 ```
-*(If no Redis URL is provided via `REDIS_URL`, it will attempt to connect to `redis://localhost:6379`.)*
 
-### 4. Run the Server
-Simply start the node server. On the first run, Sequelize will seamlessly sync your PostgreSQL database and create the `Users`, `Conversations`, `Channels`, and `Posts` tables automatically.
+> **Note:** If `SMTP_USER` is not set, OTP codes will be printed to the server console for development/testing purposes.
+
+### 5. Start the Server
+
 ```bash
 node index.js
 ```
-Visit http://localhost:3000 in your browser.
 
-## Features
-- **Legacy UI Maintained:** The sleek and highly optimized UI originally created by Toby Zerner has been fully restored and translated to EJS templates.
-- **Enterprise Databases:** Fully backed by PostgreSQL for persistence and Redis for bullet-proof sessions and memory management.
-- **Unified Authentication:** Out of the box support for traditional Email login alongside Google and GitHub OAuth using Passport.js.
-- **Socket.IO Integration:** Built with real-time foundations, enabling instant updates for Modern UI dynamics.
+On the first run, Sequelize will automatically create all database tables:
+`Users`, `Conversations`, `Channels`, `Posts`, `Messages`, `Reports`, `AuditLogs`, `Polls`, `Bookmarks`, `Drafts`, `BannedIPs`
+
+Visit **http://localhost:3000** in your browser.
+
+### 6. Create an Admin User
+
+After registering your first account, promote it to admin directly in PostgreSQL:
+
+```sql
+UPDATE "Users" SET role = 'admin' WHERE username = 'your_username';
+```
+
+Then access the admin dashboard at **http://localhost:3000/admin**.
+
+---
+
+## 🗂️ Project Structure
+
+```
+node-esotalk/
+├── addons/                 # Plugin engine & all addons
+│   ├── AddonManager.js     # Core hook system
+│   ├── badges/             # Reputation & badge system
+│   ├── darkMode/           # Theme toggle
+│   ├── infiniteScroll/     # Lazy-load posts
+│   ├── languages/          # i18n translations
+│   ├── linkPreviews/       # OpenGraph rich previews
+│   ├── liveNotifications/  # Socket.IO toasts
+│   ├── markdown/           # Safe markdown rendering
+│   ├── mentions/           # @username tagging
+│   ├── moderation/         # IP/User ban firewall
+│   ├── reactions/          # Post reactions
+│   └── skins/              # CSS themes
+├── config/
+│   ├── database.js         # Sequelize PostgreSQL config
+│   └── passport.js         # Auth strategies
+├── middleware/
+│   └── rbac.js             # Role-based access control
+├── models/
+│   ├── User.js             # Users (roles, 2FA, bio, avatar)
+│   ├── Post.js             # Posts (reactions, mentions)
+│   ├── Conversation.js     # Threads (tags, pins)
+│   ├── Channel.js          # Forums/Categories
+│   ├── Message.js          # Private DMs
+│   ├── Report.js           # Content flagging
+│   ├── AuditLog.js         # Admin action tracking
+│   ├── Poll.js             # Embedded polls
+│   ├── Bookmark.js         # Saved threads
+│   ├── Draft.js            # Auto-saved drafts
+│   └── BannedIP.js         # IP firewall
+├── routes/
+│   ├── auth.js             # Login, Signup, OTP, 2FA, OAuth
+│   ├── forum.js            # Home, Search, Tags, Polls, Bookmarks
+│   ├── admin.js            # Admin panel, reports, bans, audit
+│   ├── messages.js         # Private messaging
+│   ├── uploads.js          # File upload API
+│   └── profile.js          # User profiles, avatars, drafts
+├── views/                  # EJS templates
+├── public/
+│   ├── css/                # Stylesheets
+│   ├── js/app.js           # Keyboard shortcuts, PWA, auto-save
+│   ├── sw.js               # Service worker
+│   └── manifest.json       # PWA manifest
+├── uploads/                # User-uploaded files
+├── index.js                # Main server entry point
+└── package.json
+```
+
+---
+
+## 🔐 Authentication Flow
+
+```
+Registration:  Signup → Disposable Email Check → OTP Email → Verify OTP → Scan 2FA QR → Verify Token → Account Created
+Local Login:   Email/Password → 2FA Token → Session Created
+OAuth Login:   Google/GitHub → (New? → 2FA Setup) or (Returning? → 2FA Token) → Session Created
+```
+
+---
+
+## ⌨️ Keyboard Shortcuts
+
+| Shortcut | Action |
+|---|---|
+| `Ctrl+K` / `Cmd+K` | Jump to search |
+| `Ctrl+Enter` | Submit current form |
+| `Escape` | Close modals |
+
+---
+
+## 📜 License
+
+ISC License — Originally created by Toby Zerner, modernized for Node.js.
