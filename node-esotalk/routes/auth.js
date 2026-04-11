@@ -134,12 +134,16 @@ router.post('/setup-2fa', async (req, res) => {
         }
 
         // Token matches - Officially create the user with 2FA bound
+        // Auto-promote the very first user to admin
+        const adminExists = await User.findOne({ where: { role: 'admin' } });
+        
         await User.create({ 
             username: stagedUser.username, 
             email: stagedUser.email, 
             password: stagedUser.hashedPassword,
             twoFactorSecret: stagedUser.twoFactorSecret,
-            isTwoFactorEnabled: true
+            isTwoFactorEnabled: true,
+            role: adminExists ? 'member' : 'admin'
         });
 
         // Clean up staged data

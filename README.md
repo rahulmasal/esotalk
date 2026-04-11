@@ -288,11 +288,43 @@ Visit **http://localhost:3000** in your browser.
 
 ### 8. Create an Admin User
 
-After registering your first account, promote it to admin directly in PostgreSQL:
+There are **3 ways** to promote a user to admin:
 
-```sql
-UPDATE "Users" SET role = 'admin' WHERE username = 'your_username';
+<details>
+<summary><strong>Method 1: Automatic (Recommended)</strong></summary>
+
+The **very first user** to register on the forum is automatically promoted to **admin**. No additional steps needed!
+
+</details>
+
+<details>
+<summary><strong>Method 2: CLI Script</strong></summary>
+
+Run the built-in promotion script from your terminal:
+
+```bash
+node promote-admin.js your_username
 ```
+
+This will show a success message and list all users if the username is not found.
+
+</details>
+
+<details>
+<summary><strong>Method 3: Secret URL (No SSH/Terminal Required)</strong></summary>
+
+1. Add a secret token to your `.env` file:
+   ```env
+   ADMIN_SETUP_TOKEN=my_super_secret_setup_key_123
+   ```
+2. Restart the server
+3. Visit this URL in your browser:
+   ```
+   http://localhost:3000/admin/setup?token=my_super_secret_setup_key_123&username=your_username
+   ```
+4. **Important:** Remove `ADMIN_SETUP_TOKEN` from `.env` after setup for security!
+
+</details>
 
 Then access the admin dashboard at **http://localhost:3000/admin**.
 
