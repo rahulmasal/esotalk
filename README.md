@@ -239,52 +239,26 @@ npm --version
 
 </details>
 
-### 6. Environment Variables
+### 6. Configuration (Setup Wizard)
 
-Create a `.env` file inside the `node-esotalk/` directory:
+esoTalk Plus now includes a built-in Setup Wizard! You do **not** need to manually configure your environment.
 
-```env
-# ── Server ──
-PORT=3000
+1. Start the server:
+   ```bash
+   node index.js
+   ```
+2. The server will detect that it hasn't been configured yet and will start the **Setup Wizard** on port 3000.
+3. Open your browser and visit **http://localhost:3000**.
+4. Follow the on-screen instructions to enter your PostgreSQL and Redis credentials. The wizard will verify your connection and automatically generate your `.env` file with secure cryptographic keys.
+5. Once saved, stop the server (`Ctrl+C`) and start it again:
+   ```bash
+   node index.js
+   ```
 
-# ── Security ──
-SESSION_SECRET=your_super_secret_session_key_here
-
-# ── Database (PostgreSQL) ──
-DB_NAME=esotalk
-DB_USER=postgres
-DB_PASS=your_postgres_password
-DB_HOST=localhost
-DB_PORT=5432
-
-# ── Redis ──
-REDIS_URL=redis://localhost:6379
-
-# ── SMTP (for OTP emails) ──
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_USER=your-email@gmail.com
-SMTP_PASS=your-app-password
-
-# ── OAuth (Optional — Google & GitHub SSO) ──
-GOOGLE_CLIENT_ID=your_google_client_id
-GOOGLE_CLIENT_SECRET=your_google_client_secret
-GITHUB_CLIENT_ID=your_github_client_id
-GITHUB_CLIENT_SECRET=your_github_client_secret
-```
-
-> **Note:** If `SMTP_USER` is not set, OTP codes will be printed to the server console for development/testing purposes.
-
-### 7. Start the Server
-
-```bash
-node index.js
-```
-
-On the first run, Sequelize will automatically create all database tables:
+On this second run, Sequelize will automatically connect and create all database tables:
 `Users`, `Conversations`, `Channels`, `Posts`, `Messages`, `Reports`, `AuditLogs`, `Polls`, `Bookmarks`, `Drafts`, `BannedIPs`, `Notifications`, `Subscriptions`, `PasswordResets`, `PostEdits`
 
-Visit **http://localhost:3000** in your browser.
+Visit **http://localhost:3000** in your browser to see your live forum!
 
 ### 8. Create an Admin User
 
