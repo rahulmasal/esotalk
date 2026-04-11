@@ -24,6 +24,10 @@
                 <div class="auth-container">
                     <h2>Log In</h2>
                     
+                    <% if (typeof error !== 'undefined') { %>
+                        <div class="error-msg" style="color: #dc3545; margin-bottom: 15px; font-weight: bold;"><%= error %></div>
+                    <% } %>
+
                     <form action="/auth/login" method="POST">
                         <input type="email" name="email" placeholder="Email Address" required>
                         <input type="password" name="password" placeholder="Password" required>
@@ -31,9 +35,9 @@
                     </form>
 
                     <hr>
-                    <p>Or log in using:</p>
-                    <a href="/auth/google" class="auth-btn btn-google">Log in with Google</a>
-                    <a href="/auth/github" class="auth-btn btn-github">Log in with GitHub</a>
+                    <p style="margin-bottom: 15px;">Or log in using:</p>
+                    <a href="/auth/google" class="auth-btn btn-google" style="background-color: #db4437;">Log in with Google</a>
+                    <a href="/auth/github" class="auth-btn btn-github" style="background-color: #333;">Log in with GitHub</a>
                 </div>
             </div>
         </div>

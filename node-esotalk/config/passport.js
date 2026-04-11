@@ -38,12 +38,15 @@ module.exports = function(passport) {
         try {
           const email = profile.emails[0].value;
           let user = await User.findOne({ where: { email } });
+          
           if (!user) {
-            user = await User.create({
-              username: profile.displayName || email.split('@')[0],
-              email: email,
-              password: '', // OAuth users don't have passwords
-            });
+             // Return false for user, but pass the cleanly synthesized profile object in 'info' so we can stage them for 2FA
+             return done(null, false, { 
+                profile: { 
+                   username: profile.displayName || email.split('@')[0], 
+                   email: email 
+                } 
+             });
           }
           return done(null, user);
         } catch (error) {
@@ -64,12 +67,14 @@ module.exports = function(passport) {
         try {
           const email = profile.emails && profile.emails[0] ? profile.emails[0].value : `${profile.username}@github.com`;
           let user = await User.findOne({ where: { email } });
+          
           if (!user) {
-            user = await User.create({
-              username: profile.username,
-              email: email,
-              password: '', // OAuth users don't have passwords
-            });
+             return done(null, false, { 
+                profile: { 
+                   username: profile.username, 
+                   email: email 
+                } 
+             });
           }
           return done(null, user);
         } catch (error) {

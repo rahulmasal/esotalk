@@ -24,6 +24,10 @@
                 <div class="auth-container">
                     <h2>Create an Account</h2>
                     
+                    <% if (typeof error !== 'undefined') { %>
+                        <div class="error-msg" style="color: #dc3545; margin-bottom: 15px; font-weight: bold;"><%= error %></div>
+                    <% } %>
+
                     <form action="/auth/signup" method="POST">
                         <input type="text" name="username" placeholder="Username" required>
                         <input type="email" name="email" placeholder="Email Address" required>
@@ -32,9 +36,9 @@
                     </form>
 
                     <hr>
-                    <p>Or sign up using:</p>
-                    <a href="/auth/google" class="auth-btn btn-google">Sign up with Google</a>
-                    <a href="/auth/github" class="auth-btn btn-github">Sign up with GitHub</a>
+                    <p style="margin-bottom: 15px;">Or sign up using:</p>
+                    <a href="/auth/google" class="auth-btn btn-google" style="background-color: #db4437;">Sign up with Google</a>
+                    <a href="/auth/github" class="auth-btn btn-github" style="background-color: #333;">Sign up with GitHub</a>
                 </div>
             </div>
         </div>

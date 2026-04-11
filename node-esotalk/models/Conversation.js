@@ -19,6 +19,14 @@ const Conversation = sequelize.define('Conversation', {
   isClosed: {
     type: DataTypes.BOOLEAN,
     defaultValue: false
+  },
+  tags: {
+    type: DataTypes.JSONB,
+    defaultValue: []
+  },
+  isPinned: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false
   }
 });
 

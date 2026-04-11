@@ -34,6 +34,25 @@ const User = sequelize.define('User', {
   isBanned: {
     type: DataTypes.BOOLEAN,
     defaultValue: false
+  },
+  role: {
+    type: DataTypes.ENUM('member', 'moderator', 'admin'),
+    defaultValue: 'member'
+  },
+  bio: {
+    type: DataTypes.TEXT,
+    defaultValue: ''
+  },
+  avatarUrl: {
+    type: DataTypes.STRING,
+    defaultValue: '/img/default-avatar.png'
+  },
+  twoFactorSecret: {
+    type: DataTypes.STRING,
+  },
+  isTwoFactorEnabled: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false
   }
 });
 

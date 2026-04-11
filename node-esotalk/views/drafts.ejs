@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8'>
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/css/base.css">
+    <style>
+        .drafts-container { max-width: 700px; margin: 20px auto; padding: 20px; }
+        .draft-item { padding: 12px; border-bottom: 1px solid #eee; }
+        .draft-item h4 { margin: 0 0 4px; }
+        .draft-item p { margin: 0; color: #666; font-size: 0.9em; }
+        .draft-meta { color: #aaa; font-size: 0.8em; margin-top: 4px; }
+    </style>
+</head>
+<body class="forum-index">
+    <div id='wrapper'>
+        <div id='hdr'><div id='hdr-content'><div id='hdr-inner'>
+            <h1 id='forumTitle'><a href='/'>esoTalk Plus</a></h1>
+        </div></div></div>
+        <div id='body'><div id='body-content'>
+            <div class="drafts-container">
+                <h2>📝 My Drafts</h2>
+                <% if (drafts.length === 0) { %>
+                    <p>No drafts saved.</p>
+                <% } %>
+                <% drafts.forEach(d => { %>
+                    <div class="draft-item">
+                        <h4><%= d.title || 'Untitled Draft' %></h4>
+                        <p><%= d.content ? d.content.substring(0, 150) + '...' : '' %></p>
+                        <div class="draft-meta">Last saved: <%= new Date(d.updatedAt).toLocaleString() %></div>
+                    </div>
+                <% }); %>
+            </div>
+        </div></div>
+    </div>
+</body>
+</html>
