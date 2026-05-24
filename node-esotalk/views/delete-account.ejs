@@ -1,37 +1,47 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset='utf-8'>
-    <title><%= title %></title>
-    <link rel="stylesheet" href="/css/base.css">
-    <style>
-        .auth-container { max-width: 400px; margin: 40px auto; padding: 20px; background: #fff; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); text-align: center; }
-        .auth-btn { display: block; width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 4px; color: white; border: none; font-weight: bold; cursor: pointer; }
-        .btn-danger { background-color: #dc3545; }
-        input[type="text"] { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; text-align: center; }
-        .error-msg { color: #dc3545; margin-bottom: 15px; font-weight: bold; }
-        .warning-box { background: #fff3cd; border: 1px solid #ffc107; padding: 15px; border-radius: 6px; margin-bottom: 15px; text-align: left; font-size: 0.9em; }
-    </style>
+<%- include('partials/head') %>
 </head>
-<body class="forum-index">
-    <div id='wrapper'>
-        <div id='hdr'><div id='hdr-content'><div id='hdr-inner'><h1 id='forumTitle'><a href='/'>esoTalk Plus</a></h1></div></div></div>
-        <div id='body'><div id='body-content'>
-            <div class="auth-container">
-                <h2>⚠️ Delete Account</h2>
-                <div class="warning-box">
-                    <strong>This action is permanent and cannot be undone.</strong><br>
-                    All your posts, messages, bookmarks, and drafts will be permanently deleted.
-                </div>
-                <% if (typeof error !== 'undefined') { %><div class="error-msg"><%= error %></div><% } %>
-                <form action="/auth/delete-account" method="POST">
-                    <p>Type <strong>DELETE</strong> to confirm:</p>
-                    <input type="text" name="confirmation" placeholder="DELETE" required>
-                    <button type="submit" class="auth-btn btn-danger">Permanently Delete My Account</button>
-                </form>
-                <a href="/" style="display:block; margin-top:15px; color:#007bff;">← Cancel</a>
+<body class='forum-index'>
+<div id='messages'></div>
+<div id='wrapper'>
+
+<%- include('partials/header') %>
+
+<div id='body'>
+<div id='body-content'>
+
+<div class='sheet active' style='margin:40px auto; width:470px;'>
+    <h3 style='padding:10px 15px;'>Delete Account</h3>
+    <div class='section'>
+        <div class='message warning'>
+            <strong>This action is permanent and cannot be undone.</strong><br>
+            All your posts, messages, bookmarks, and drafts will be permanently deleted.
+        </div>
+        <% if (typeof error !== 'undefined' && error) { %>
+            <div class='message warning'><%= error %></div>
+        <% } %>
+        <form action='/auth/delete-account' method='POST'>
+            <p style='color:#888;'>Type <strong>DELETE</strong> to confirm:</p>
+            <ul class='form'>
+                <li>
+                    <input type='text' name='confirmation' placeholder='DELETE' required style='text-align:center;'>
+                </li>
+            </ul>
+            <div class='buttons'>
+                <button type='submit' class='button submit' style='background:#c00; color:#fff;'>Permanently Delete My Account</button>
+                <a href='/' class='button'>Cancel</a>
             </div>
-        </div></div>
+        </form>
     </div>
+</div>
+
+</div>
+</div>
+
+<%- include('partials/footer') %>
+
+</div>
 </body>
 </html>

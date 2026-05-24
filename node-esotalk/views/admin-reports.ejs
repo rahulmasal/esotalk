@@ -1,59 +1,66 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset='utf-8'>
-    <title><%= title %></title>
-    <link rel="stylesheet" href="/css/base.css">
-    <style>
-        .admin-container { max-width: 900px; margin: 20px auto; padding: 20px; }
-        .report-card { background: #fff; border-left: 4px solid #ffc107; padding: 15px; margin-bottom: 15px; border-radius: 4px; box-shadow: 0 1px 4px rgba(0,0,0,0.1); }
-        .report-card.reviewed { border-left-color: #28a745; }
-        .report-card.dismissed { border-left-color: #6c757d; }
-        .report-meta { color: #888; font-size: 0.85em; margin-bottom: 8px; }
-        .report-content { background: #f8f9fa; padding: 10px; border-radius: 4px; margin: 10px 0; }
-        .btn-sm { padding: 4px 10px; border: none; border-radius: 4px; cursor: pointer; color: white; font-size: 0.85em; margin-right: 5px; }
-        .btn-success { background: #28a745; }
-        .btn-secondary { background: #6c757d; }
-    </style>
+<%- include('partials/head') %>
+<style>
+    .report-card { background: #fff; border-left: 4px solid #ffc107; padding: 15px; margin-bottom: 15px; border-radius: 3px; border: 1px solid #e1e1e1; }
+    .report-card.reviewed { border-left-color: #28a745; }
+    .report-card.dismissed { border-left-color: #888; }
+    .report-meta { color: #888; font-size: 85%; margin-bottom: 8px; }
+    .report-content { background: #f8f8f8; padding: 10px; border-radius: 3px; margin: 10px 0; }
+</style>
 </head>
-<body class="forum-index">
-    <div id='wrapper'>
-        <div id='hdr'><div id='hdr-content'><div id='hdr-inner'>
-            <h1 id='forumTitle'><a href='/'>esoTalk Plus</a></h1>
-            <ul id='mainMenu'><li><a href='/admin'>← Back to Admin</a></li></ul>
-        </div></div></div>
-        <div id='body'><div id='body-content'>
-            <div class="admin-container">
-                <h1>📋 Reports Queue</h1>
-                <% if (reports.length === 0) { %>
-                    <p>No reports to review. 🎉</p>
-                <% } %>
-                <% reports.forEach(report => { %>
-                    <div class="report-card <%= report.status %>">
-                        <div class="report-meta">
-                            Reported by <strong><%= report.reporter ? report.reporter.username : 'Unknown' %></strong> 
-                            | Status: <strong><%= report.status %></strong>
-                            | <%= report.createdAt %>
-                        </div>
-                        <p><strong>Reason:</strong> <%= report.reason %></p>
-                        <% if (report.details) { %><p><%= report.details %></p><% } %>
-                        <% if (report.Post) { %>
-                            <div class="report-content"><%= report.Post.content.substring(0, 200) %>...</div>
-                        <% } %>
-                        <% if (report.status === 'pending') { %>
-                            <form action="/admin/reports/<%= report.id %>/status" method="POST" style="display:inline;">
-                                <input type="hidden" name="status" value="reviewed">
-                                <button class="btn-sm btn-success">✓ Mark Reviewed</button>
-                            </form>
-                            <form action="/admin/reports/<%= report.id %>/status" method="POST" style="display:inline;">
-                                <input type="hidden" name="status" value="dismissed">
-                                <button class="btn-sm btn-secondary">✕ Dismiss</button>
-                            </form>
-                        <% } %>
-                    </div>
-                <% }); %>
-            </div>
-        </div></div>
+<body class='forum-index'>
+<div id='messages'></div>
+<div id='wrapper'>
+
+<%- include('partials/header') %>
+
+<div id='body'>
+<div id='body-content'>
+<div class='bodyHeader'>
+<h1>Reports Queue</h1>
+<a href='/admin'>Back to Admin</a>
+</div>
+
+<% if (reports.length === 0) { %>
+    <div class='area'>
+        <p style='text-align:center; color:#888; padding:20px;'>No reports to review.</p>
     </div>
+<% } %>
+
+<% reports.forEach(report => { %>
+    <div class='report-card <%= report.status %>'>
+        <div class='report-meta'>
+            Reported by <strong><%= report.reporter ? report.reporter.username : 'Unknown' %></strong>
+            | Status: <strong><%= report.status %></strong>
+            | <%= report.createdAt %>
+        </div>
+        <p><strong>Reason:</strong> <%= report.reason %></p>
+        <% if (report.details) { %><p><%= report.details %></p><% } %>
+        <% if (report.Post && report.Post.content) { %>
+            <div class='report-content'><%= report.Post.content.substring(0, 200) %>...</div>
+        <% } else if (report.PostId) { %>
+            <div class='report-content'><em>[Post content unavailable or deleted]</em></div>
+        <% } %>
+        <% if (report.status === 'pending') { %>
+            <form action='/admin/reports/<%= report.id %>/status' method='POST' style='display:inline;'>
+                <input type='hidden' name='status' value='reviewed'>
+                <button class='button'>Mark Reviewed</button>
+            </form>
+            <form action='/admin/reports/<%= report.id %>/status' method='POST' style='display:inline;'>
+                <input type='hidden' name='status' value='dismissed'>
+                <button class='button'>Dismiss</button>
+            </form>
+        <% } %>
+    </div>
+<% }); %>
+
+</div>
+</div>
+
+<%- include('partials/footer') %>
+
+</div>
 </body>
 </html>

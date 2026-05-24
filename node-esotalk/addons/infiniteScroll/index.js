@@ -15,13 +15,14 @@ module.exports = function(addonManager, app, io) {
                         fetch(\`/api/posts?offset=\${offset}\`)
                             .then(res => res.json())
                             .then(data => {
-                                if(data && data.posts.length > 0) {
+                                if(data && data.posts && data.posts.length > 0) {
                                     offset += data.posts.length;
                                     // Append to DOM logic goes here
                                 }
                                 isLoading = false;
                             }).catch(err => {
                                 console.error('Infinite Scroll End', err);
+                                isLoading = false;
                             });
                     }
                 }

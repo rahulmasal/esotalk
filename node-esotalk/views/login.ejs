@@ -1,47 +1,53 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset='utf-8'>
-    <title><%= title %></title>
-    <link rel="stylesheet" href="/css/base.css">
-    <style>
-        .auth-container { max-width: 400px; margin: 40px auto; padding: 20px; background: #fff; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); text-align: center;}
-        .auth-container h2 { margin-bottom: 20px; }
-        .auth-btn { display: block; width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 4px; text-decoration: none; color: white; border: none; font-weight: bold; cursor: pointer; }
-        .btn-google { background-color: #DB4437; }
-        .btn-github { background-color: #333; }
-        .btn-local { background-color: #007BFF; }
-        hr { border: 1px solid #eee; margin: 20px 0; }
-        input[type="email"], input[type="password"] { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
-    </style>
+<%- include('partials/head') %>
 </head>
-<body class="forum-index">
-    <div id='wrapper'>
-        <div id='hdr'><div id='hdr-content'><div id='hdr-inner'><h1 id='forumTitle'><a href='/'>esoTalk Plus</a></h1></div></div></div>
-        
-        <div id='body'>
-            <div id='body-content'>
-                <div class="auth-container">
-                    <h2>Log In</h2>
-                    
-                    <% if (typeof error !== 'undefined') { %>
-                        <div class="error-msg" style="color: #dc3545; margin-bottom: 15px; font-weight: bold;"><%= error %></div>
-                    <% } %>
+<body class='forum-index'>
+<div id='messages'></div>
+<div id='wrapper'>
 
-                    <form action="/auth/login" method="POST">
-                        <input type="email" name="email" placeholder="Email Address" required>
-                        <input type="password" name="password" placeholder="Password" required>
-                        <button type="submit" class="auth-btn btn-local">Log in with Email</button>
-                    </form>
-                    <a href="/auth/forgot-password" style="display:block; color:#007bff; margin-bottom:10px; font-size:0.9em;">Forgot your password?</a>
+<%- include('partials/header') %>
 
-                    <hr>
-                    <p style="margin-bottom: 15px;">Or log in using:</p>
-                    <a href="/auth/google" class="auth-btn btn-google" style="background-color: #db4437;">Log in with Google</a>
-                    <a href="/auth/github" class="auth-btn btn-github" style="background-color: #333;">Log in with GitHub</a>
-                </div>
-            </div>
-        </div>
-    </div>
+<div id='body'>
+<div id='body-content'>
+
+<div class='sheet active' style='margin:40px auto; width:470px;'>
+  <h3 style='padding:10px 15px;'>Log In</h3>
+  <div class='section'>
+    <% if (typeof error !== 'undefined' && error) { %>
+      <div class='message warning'><%= error %></div>
+    <% } %>
+
+    <form action='/auth/login' method='POST'>
+      <ul class='form'>
+        <li>
+          <label>Email</label>
+          <input type='email' name='email' placeholder='Email Address' required>
+        </li>
+        <li>
+          <label>Password</label>
+          <input type='password' name='password' placeholder='Password' required>
+        </li>
+      </ul>
+      <div class='buttons'>
+        <button type='submit' class='button submit' style='background:#364159; color:#fff;'>Log In</button>
+        <small><a href='/auth/forgot-password'>Forgot your password?</a></small>
+      </div>
+    </form>
+  </div>
+  <div class='section' style='text-align:center; border-top:1px solid #e5e5e5;'>
+    <p style='color:#888; margin-bottom:10px;'>Or log in using:</p>
+    <a href='/auth/google' class='button' style='margin:3px;'>Google</a>
+    <a href='/auth/github' class='button' style='margin:3px;'>GitHub</a>
+  </div>
+</div>
+
+</div>
+</div>
+
+<%- include('partials/footer') %>
+
+</div>
 </body>
 </html>

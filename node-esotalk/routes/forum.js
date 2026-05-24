@@ -11,18 +11,138 @@ const Draft = require('../models/Draft');
 const Report = require('../models/Report');
 const { requireAuth } = require('../middleware/rbac');
 
+// Time ago helper
+function timeAgo(date) {
+  if (!date) return '';
+  const seconds = Math.floor((new Date() - new Date(date)) / 1000);
+  if (seconds < 60) return 'just now';
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  if (days < 30) return `${days}d ago`;
+  const months = Math.floor(days / 30);
+  if (months < 12) return `${months}mo ago`;
+  return `${Math.floor(months / 12)}y ago`;
+}
+
 // Home route (Topic list) — with pinned first
 router.get('/', async (req, res) => {
   try {
-    const conversations = await Conversation.findAll({ 
+    const conversations = await Conversation.findAll({
       include: [{ model: User, as: 'startUser', attributes: ['username', 'avatarUrl'] }],
-      order: [['isPinned', 'DESC'], ['createdAt', 'DESC']], 
-      limit: 20 
+      order: [['isPinned', 'DESC'], ['createdAt', 'DESC']],
+      limit: 20
     });
-    res.render('index', { title: 'esoTalk Plus - Forum', conversations });
+    res.render('index', { title: 'esoTalk Plus', conversations, user: req.user, timeAgo });
   } catch (err) {
     console.error(err);
-    res.render('index', { title: 'esoTalk Plus - Forum', conversations: [] });
+    res.render('index', { title: 'esoTalk Plus', conversations: [], user: req.user, timeAgo });
+  }
+});
+
+// View single conversation
+router.get('/conversation/:slug', async (req, res) => {
+  try {
+    const conversation = await Conversation.findOne({
+      where: { slug: req.params.slug },
+      include: [{ model: User, as: 'startUser', attributes: ['id', 'username', 'avatarUrl'] }]
+    });
+    if (!conversation) return res.status(404).send('Conversation not found');
+
+    const posts = await Post.findAll({
+      where: { conversationId: conversation.id },
+      include: [{ model: User, attributes: ['id', 'username', 'avatarUrl', 'reputation'] }],
+      order: [['createdAt', 'ASC']]
+    });
+
+    const poll = await Poll.findOne({ where: { conversationId: conversation.id } });
+
+    res.render('conversation', {
+      title: conversation.title,
+      conversation,
+      posts,
+      poll,
+      user: req.user
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Error loading conversation');
+  }
+});
+
+// Start new conversation page
+router.get('/conversation/start', requireAuth, async (req, res) => {
+  try {
+    const channels = await Channel.findAll({ order: [['title', 'ASC']] });
+    res.render('start-conversation', { title: 'New Conversation', channels });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Error loading form');
+  }
+});
+
+// Create new conversation
+router.post('/conversation/start', requireAuth, async (req, res) => {
+  try {
+    const { title, content, channelId } = req.body;
+    if (!title || !content) {
+      return res.status(400).send('Title and content are required');
+    }
+    const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') + '-' + Date.now();
+    const conversation = await Conversation.create({
+      title: title.trim(),
+      slug,
+      memberId: req.user.id,
+      channelId: channelId || null,
+      lastActive: new Date()
+    });
+    await Post.create({
+      content: content.trim(),
+      memberId: req.user.id,
+      conversationId: conversation.id
+    });
+    res.redirect(`/conversation/${conversation.slug}`);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Error creating conversation');
+  }
+});
+
+// Reply to conversation
+router.post('/conversation/:slug/reply', requireAuth, async (req, res) => {
+  try {
+    const conversation = await Conversation.findOne({ where: { slug: req.params.slug } });
+    if (!conversation) return res.status(404).send('Conversation not found');
+    const { content } = req.body;
+    if (!content || !content.trim()) return res.redirect('back');
+    await Post.create({
+      content: content.trim(),
+      memberId: req.user.id,
+      conversationId: conversation.id
+    });
+    conversation.lastActive = new Date();
+    await conversation.save();
+    res.redirect(`/conversation/${conversation.slug}`);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Error posting reply');
+  }
+});
+
+// Channels page
+router.get('/channels', async (req, res) => {
+  try {
+    const channels = await Channel.findAll({ order: [['title', 'ASC']] });
+    const channelData = await Promise.all(channels.map(async (ch) => {
+      const count = await Conversation.count({ where: { channelId: ch.id } });
+      return { ...ch.toJSON(), conversationCount: count };
+    }));
+    res.render('channels', { title: 'Channels', channels: channelData });
+  } catch (err) {
+    console.error(err);
+    res.render('channels', { title: 'Channels', channels: [] });
   }
 });
 
@@ -32,15 +152,18 @@ router.get('/search', async (req, res) => {
     const q = req.query.q || '';
     if (!q.trim()) return res.render('search', { title: 'Search', results: [], query: '' });
 
+    // Escape LIKE wildcards to prevent wildcard injection
+    const escaped = q.replace(/[%_]/g, '\\$&');
+
     const conversations = await Conversation.findAll({
-      where: { title: { [Op.iLike]: `%${q}%` } },
+      where: { title: { [Op.iLike]: `%${escaped}%` } },
       include: [{ model: User, as: 'startUser', attributes: ['username'] }],
       order: [['createdAt', 'DESC']],
       limit: 30
     });
 
     const posts = await Post.findAll({
-      where: { content: { [Op.iLike]: `%${q}%` } },
+      where: { content: { [Op.iLike]: `%${escaped}%` } },
       include: [
         { model: User, attributes: ['username'] },
         { model: Conversation, attributes: ['title', 'slug'] }
@@ -49,7 +172,8 @@ router.get('/search', async (req, res) => {
       limit: 30
     });
 
-    res.render('search', { title: `Search: ${q}`, results: { conversations, posts }, query: q });
+    const safeTitle = `Search: ${q.replace(/[<>&"']/g, '')}`;
+    res.render('search', { title: safeTitle, results: { conversations, posts }, query: q });
   } catch (err) {
     console.error(err);
     res.render('search', { title: 'Search', results: { conversations: [], posts: [] }, query: '' });
@@ -136,7 +260,12 @@ router.post('/poll/:id/vote', requireAuth, async (req, res) => {
 
     const optionIndex = parseInt(req.body.optionIndex);
     const options = [...poll.options];
-    
+
+    // Bounds check
+    if (isNaN(optionIndex) || optionIndex < 0 || optionIndex >= options.length) {
+      return res.status(400).json({ success: false, error: 'Invalid option' });
+    }
+
     // Prevent double voting
     const alreadyVoted = options.some(opt => opt.votes.includes(req.user.id));
     if (alreadyVoted && !poll.isMultiChoice) {
@@ -197,7 +326,9 @@ router.post('/post/:id/edit', requireAuth, async (req, res) => {
   try {
     const post = await Post.findByPk(req.params.id);
     if (!post) return res.status(404).json({ error: 'Post not found' });
-    if (post.memberId !== req.user.id && req.user.role === 'member') {
+    const isOwner = post.memberId === req.user.id;
+    const isModerator = ['admin', 'moderator'].includes(req.user.role);
+    if (!isOwner && !isModerator) {
       return res.status(403).json({ error: 'Not authorized' });
     }
 
@@ -237,7 +368,9 @@ router.delete('/post/:id', requireAuth, async (req, res) => {
   try {
     const post = await Post.findByPk(req.params.id);
     if (!post) return res.status(404).json({ error: 'Post not found' });
-    if (post.memberId !== req.user.id && req.user.role === 'member') {
+    const isOwner = post.memberId === req.user.id;
+    const isModerator = ['admin', 'moderator'].includes(req.user.role);
+    if (!isOwner && !isModerator) {
       return res.status(403).json({ error: 'Not authorized' });
     }
     await post.destroy();

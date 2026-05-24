@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+<%- include('partials/head') %>
+</head>
+<body class='forum-index'>
+<div id='messages'></div>
+<div id='wrapper'>
+
+<%- include('partials/header') %>
+
+<div id='body'>
+<div id='body-content'>
+<div class='bodyHeader'>
+<h1>Channels</h1>
+</div>
+
+<% if (channels.length === 0) { %>
+  <div class='area'>
+    <p style='text-align:center; color:#888; padding:20px;'>No channels yet.</p>
+  </div>
+<% } else { %>
+  <ul class='channelList'>
+    <% channels.forEach(ch => { %>
+      <li>
+        <a class='channel' href='/channels/<%= ch.slug || ch.id %>'><%= ch.title %></a>
+        <span class='stats'><%= ch.conversationCount %> conversations</span>
+        <p class='description'><%= ch.description || '' %></p>
+      </li>
+    <% }); %>
+  </ul>
+<% } %>
+
+</div>
+</div>
+
+<%- include('partials/footer') %>
+
+</div>
+</body>
+</html>

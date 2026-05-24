@@ -17,9 +17,10 @@ module.exports = function(addonManager, app, io) {
 
             // Badge award logc
             let newBadges = [...author.badges];
-            if (author.reputation === 10 && !newBadges.includes('Rising Star')) {
+            if (author.reputation >= 10 && !newBadges.includes('Rising Star')) {
                 newBadges.push('Rising Star');
-            } else if (author.reputation === 100 && !newBadges.includes('Community Pillar')) {
+            }
+            if (author.reputation >= 100 && !newBadges.includes('Community Pillar')) {
                 newBadges.push('Community Pillar');
             }
 

@@ -2,18 +2,33 @@ const ogs = require('open-graph-scraper');
 
 module.exports = function(addonManager, app, io) {
 
+    // Sanitize text for safe HTML embedding
+    function escapeHtml(text) {
+        if (!text) return '';
+        return String(text)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#x27;');
+    }
+
     // Helper function to extract URL and generate rich card HTML
     async function createRichLink(url) {
         try {
             const options = { url, timeout: 3000 };
             const { result } = await ogs(options);
             if (result && result.success && result.ogTitle) {
+                const safeTitle = escapeHtml(result.ogTitle);
+                const safeDesc = escapeHtml(result.ogDescription || '');
+                const safeUrl = escapeHtml(url);
+                const safeImg = result.ogImage && result.ogImage.length ? escapeHtml(result.ogImage[0].url) : '';
                 return `
                 <div class="link-preview-card" style="border: 1px solid #ddd; padding: 10px; border-radius: 8px; margin: 10px 0; background: #fafafa;">
-                    ${result.ogImage && result.ogImage.length ? `<img src="${result.ogImage[0].url}" style="max-width:100px; float:left; margin-right:15px; border-radius:4px;">` : ''}
+                    ${safeImg ? `<img src="${safeImg}" style="max-width:100px; float:left; margin-right:15px; border-radius:4px;">` : ''}
                     <div>
-                        <h4 style="margin:0 0 5px 0;"><a href="${url}" target="_blank" style="text-decoration:none;">${result.ogTitle}</a></h4>
-                        <p style="margin:0; font-size: 0.9em; color:#555;">${result.ogDescription || ''}</p>
+                        <h4 style="margin:0 0 5px 0;"><a href="${safeUrl}" target="_blank" style="text-decoration:none;">${safeTitle}</a></h4>
+                        <p style="margin:0; font-size: 0.9em; color:#555;">${safeDesc}</p>
                     </div>
                     <div style="clear:both;"></div>
                 </div>`;
@@ -21,7 +36,7 @@ module.exports = function(addonManager, app, io) {
         } catch (err) {
             console.error('[Addon: LinkPreviews] Failed to fetch:', url, err.message);
         }
-        return `<a href="${url}" target="_blank">${url}</a>`; // Fallback to plain link
+        return `<a href="${escapeHtml(url)}" target="_blank">${escapeHtml(url)}</a>`;
     }
 
     // Hook into post render

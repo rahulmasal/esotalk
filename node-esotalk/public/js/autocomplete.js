@@ -165,7 +165,8 @@ function ETAutoCompletePopup(field, character, clickHandler, insertField) {
 					name = name.replace(regexp, "<strong>$1</strong>");
 
 					// Create an <li> for the result and add some event handlers.
-					item = $("<li><a href='#'><i>"+results[i].avatar+"</i> "+name+"</a></li>").data("position", i).data("member", results[i]).mouseover(function() {
+					var safeAvatar = $("<div/>").text(results[i].avatar || '').html();
+					item = $("<li><a href='#'><i>"+safeAvatar+"</i> "+name+"</a></li>").data("position", i).data("member", results[i]).mouseover(function() {
 						ac.updateIndex($(this).data("position"));
 					}).click(function(e) {
 						e.preventDefault();

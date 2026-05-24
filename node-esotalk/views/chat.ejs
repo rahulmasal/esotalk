@@ -1,100 +1,113 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset='utf-8'>
-    <title><%= title %></title>
-    <link rel="stylesheet" href="/css/base.css">
-    <style>
-        .chat-container { max-width: 700px; margin: 20px auto; padding: 20px; }
-        .chat-header { display: flex; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 10px; margin-bottom: 15px; }
-        .chat-header img { width: 40px; height: 40px; border-radius: 50%; margin-right: 10px; }
-        .chat-messages { max-height: 500px; overflow-y: auto; padding: 10px; }
-        .message { margin-bottom: 10px; display: flex; }
-        .message.sent { justify-content: flex-end; }
-        .message .bubble { max-width: 70%; padding: 10px 14px; border-radius: 16px; }
-        .message.received .bubble { background: #f1f1f1; border-bottom-left-radius: 4px; }
-        .message.sent .bubble { background: #007bff; color: white; border-bottom-right-radius: 4px; }
-        .msg-time { font-size: 0.7em; opacity: 0.6; margin-top: 4px; }
-        .chat-input { display: flex; gap: 10px; margin-top: 15px; border-top: 1px solid #eee; padding-top: 15px; }
-        .chat-input textarea { flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 8px; resize: none; }
-        .chat-input button { padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 8px; cursor: pointer; }
-    </style>
+<%- include('partials/head') %>
+<style>
+    .chat-container { max-width: 700px; margin: 20px auto; }
+    .chat-header { display: flex; align-items: center; padding-bottom: 10px; margin-bottom: 15px; border-bottom: 1px solid #e1e1e1; }
+    .chat-header img { width: 40px; height: 40px; border-radius: 50%; margin-right: 10px; }
+    .chat-messages { max-height: 500px; overflow-y: auto; padding: 10px; }
+    .chat-message { margin-bottom: 10px; display: flex; }
+    .chat-message.sent { justify-content: flex-end; }
+    .chat-message .bubble { max-width: 70%; padding: 10px 14px; border-radius: 16px; }
+    .chat-message.received .bubble { background: #f1f1f1; border-bottom-left-radius: 4px; }
+    .chat-message.sent .bubble { background: #364159; color: white; border-bottom-right-radius: 4px; }
+    .msg-time { font-size: 0.7em; opacity: 0.6; margin-top: 4px; }
+    .chat-input { display: flex; gap: 10px; margin-top: 15px; border-top: 1px solid #e1e1e1; padding-top: 15px; }
+    .chat-input textarea { flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 8px; resize: none; }
+    .chat-input button { padding: 10px 20px; background: #364159; color: white; border: none; border-radius: 8px; cursor: pointer; }
+</style>
 </head>
-<body class="forum-index">
-    <div id='wrapper'>
-        <div id='hdr'><div id='hdr-content'><div id='hdr-inner'>
-            <h1 id='forumTitle'><a href='/'>esoTalk Plus</a></h1>
-            <ul id='mainMenu'><li><a href='/messages'>← Inbox</a></li></ul>
-        </div></div></div>
-        <div id='body'><div id='body-content'>
-            <div class="chat-container">
-                <div class="chat-header">
-                    <img src="<%= partner.avatarUrl || '/img/default-avatar.png' %>">
-                    <h3><%= partner.username %></h3>
-                </div>
-                <div class="chat-messages" id="chatMessages">
-                    <% messages.forEach(msg => { %>
-                        <div class="message <%= msg.senderId === user.id ? 'sent' : 'received' %>">
-                            <div class="bubble">
-                                <div><%= msg.content %></div>
-                                <div class="msg-time"><%= new Date(msg.createdAt).toLocaleTimeString() %></div>
-                            </div>
-                        </div>
-                    <% }); %>
-                </div>
-                <div id="typingIndicator" style="color:#888; font-size:0.85em; padding:4px 0; display:none;">
-                    <em><span id="typingName"></span> is typing...</em>
-                </div>
-                <form action="/messages/send" method="POST" class="chat-input">
-                    <input type="hidden" name="receiverId" value="<%= partner.id %>">
-                    <textarea name="content" id="msgInput" rows="2" placeholder="Type a message..." required></textarea>
-                    <button type="submit">Send</button>
-                </form>
-            </div>
-        </div></div>
+<body class='forum-index'>
+<div id='messages'></div>
+<div id='wrapper'>
+
+<%- include('partials/header') %>
+
+<div id='body'>
+<div id='body-content'>
+<div class='bodyHeader'>
+<h1><%= partner.username %></h1>
+<a href='/messages'>Back to Messages</a>
+</div>
+
+<div class='chat-container'>
+    <div class='chat-header'>
+        <img src="<%= partner.avatarUrl || '/img/default-avatar.png' %>">
+        <h3><%= partner.username %></h3>
     </div>
-    <script src="/socket.io/socket.io.js"></script>
-    <script>
-        const socket = io();
-        const userId = '<%= user.id %>';
-        const partnerId = '<%= partner.id %>';
-        const userName = '<%= user.username %>';
+    <div class='chat-messages' id='chatMessages'>
+        <% messages.forEach(msg => { %>
+            <div class='chat-message <%= msg.senderId === user.id ? "sent" : "received" %>'>
+                <div class='bubble'>
+                    <div><%= msg.content %></div>
+                    <div class='msg-time'><%= new Date(msg.createdAt).toLocaleTimeString() %></div>
+                </div>
+            </div>
+        <% }); %>
+    </div>
+    <div id='typingIndicator' style='color:#888; font-size:85%; padding:4px 0; display:none;'>
+        <em><span id='typingName'></span> is typing...</em>
+    </div>
+    <form action='/messages/send' method='POST' class='chat-input'>
+        <input type='hidden' name='receiverId' value='<%= partner.id %>'>
+        <textarea name='content' id='msgInput' rows='2' placeholder='Type a message...' required></textarea>
+        <button type='submit'>Send</button>
+    </form>
+</div>
 
-        socket.emit('joinRoom', userId);
-        socket.emit('setOnline', userId);
+</div>
+</div>
 
-        // Receive messages
-        socket.on('newMessage', (msg) => {
-            const div = document.createElement('div');
-            div.className = 'message received';
-            div.innerHTML = '<div class="bubble"><div>' + msg.content + '</div><div class="msg-time">Just now</div></div>';
-            document.getElementById('chatMessages').appendChild(div);
-            document.getElementById('chatMessages').scrollTop = document.getElementById('chatMessages').scrollHeight;
-        });
+<%- include('partials/footer') %>
 
-        // Typing indicators
-        let typingTimeout;
-        const msgInput = document.getElementById('msgInput');
-        
-        msgInput.addEventListener('input', () => {
-            socket.emit('typing', { receiverId: partnerId, senderId: userId, senderName: userName });
-            clearTimeout(typingTimeout);
-            typingTimeout = setTimeout(() => {
-                socket.emit('stopTyping', { receiverId: partnerId, senderId: userId });
-            }, 2000);
-        });
+</div>
 
-        socket.on('userTyping', (data) => {
-            document.getElementById('typingIndicator').style.display = 'block';
-            document.getElementById('typingName').textContent = data.senderName;
-        });
+<script src='/socket.io/socket.io.js'></script>
+<script>
+    const socket = io();
+    const userId = <%- JSON.stringify(String(user.id)) %>;
+    const partnerId = <%- JSON.stringify(String(partner.id)) %>;
+    const userName = <%- JSON.stringify(user.username) %>;
 
-        socket.on('userStopTyping', () => {
-            document.getElementById('typingIndicator').style.display = 'none';
-        });
-
-        // Auto-scroll to bottom
+    socket.on('newMessage', (msg) => {
+        const div = document.createElement('div');
+        div.className = 'chat-message received';
+        const bubble = document.createElement('div');
+        bubble.className = 'bubble';
+        const contentDiv = document.createElement('div');
+        contentDiv.textContent = msg.content;
+        const timeDiv = document.createElement('div');
+        timeDiv.className = 'msg-time';
+        timeDiv.textContent = 'Just now';
+        bubble.appendChild(contentDiv);
+        bubble.appendChild(timeDiv);
+        div.appendChild(bubble);
+        document.getElementById('chatMessages').appendChild(div);
         document.getElementById('chatMessages').scrollTop = document.getElementById('chatMessages').scrollHeight;
-    </script>
+    });
+
+    let typingTimeout;
+    const msgInput = document.getElementById('msgInput');
+
+    msgInput.addEventListener('input', () => {
+        socket.emit('typing', { receiverId: partnerId, senderId: userId, senderName: userName });
+        clearTimeout(typingTimeout);
+        typingTimeout = setTimeout(() => {
+            socket.emit('stopTyping', { receiverId: partnerId, senderId: userId });
+        }, 2000);
+    });
+
+    socket.on('userTyping', (data) => {
+        document.getElementById('typingIndicator').style.display = 'block';
+        document.getElementById('typingName').textContent = data.senderName;
+    });
+
+    socket.on('userStopTyping', () => {
+        document.getElementById('typingIndicator').style.display = 'none';
+    });
+
+    document.getElementById('chatMessages').scrollTop = document.getElementById('chatMessages').scrollHeight;
+</script>
 </body>
 </html>

@@ -3,10 +3,10 @@ module.exports = function(addonManager, app, io) {
 
     // Map socket ID to user ID so we can send direct notifications
     io.on('connection', (socket) => {
-        socket.on('identify', (userId) => {
-            connectedUsers.set(userId, socket.id);
-            console.log(`[Socket] User ${userId} identified`);
-        });
+        const sessionUserId = socket.request?.session?.passport?.user;
+        if (sessionUserId) {
+            connectedUsers.set(String(sessionUserId), socket.id);
+        }
 
         socket.on('disconnect', () => {
             for (let [uid, sid] of connectedUsers.entries()) {

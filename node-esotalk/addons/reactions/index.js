@@ -9,6 +9,12 @@ module.exports = function(addonManager, app, io) {
             const reaction = req.body.reactionType; // e.g., 'like', 'heart'
             const userId = req.user.id;
 
+            // Validate reaction type to prevent prototype pollution
+            const allowedReactions = ['like', 'heart', 'laugh', 'wow', 'sad', 'angry'];
+            if (!reaction || !allowedReactions.includes(reaction)) {
+                return res.status(400).json({ error: 'Invalid reaction type' });
+            }
+
             const Post = require('../../models/Post');
             const post = await Post.findByPk(postId);
             if (!post) return res.status(404).json({ error: 'Post not found' });

@@ -4,6 +4,13 @@ function requireAuth(req, res, next) {
     if (!req.isAuthenticated()) {
         return res.redirect('/auth/login');
     }
+    if (req.user && req.user.isBanned) {
+        return req.logout(() => {
+            req.session.destroy(() => {
+                res.status(403).send('Your account has been suspended.');
+            });
+        });
+    }
     next();
 }
 

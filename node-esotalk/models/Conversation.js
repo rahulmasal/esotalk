@@ -10,7 +10,8 @@ const Conversation = sequelize.define('Conversation', {
   },
   slug: {
     type: DataTypes.STRING,
-    allowNull: false
+    allowNull: false,
+    unique: true
   },
   countPosts: {
     type: DataTypes.INTEGER,

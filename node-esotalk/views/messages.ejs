@@ -1,46 +1,48 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset='utf-8'>
-    <title><%= title %></title>
-    <link rel="stylesheet" href="/css/base.css">
-    <style>
-        .msg-container { max-width: 700px; margin: 20px auto; padding: 20px; }
-        .conversation-item { display: flex; align-items: center; padding: 12px; border-bottom: 1px solid #eee; cursor: pointer; text-decoration: none; color: inherit; }
-        .conversation-item:hover { background: #f8f9fa; }
-        .conv-avatar { width: 40px; height: 40px; border-radius: 50%; margin-right: 12px; object-fit: cover; }
-        .conv-info { flex: 1; }
-        .conv-info h4 { margin: 0; }
-        .conv-info p { margin: 2px 0 0; color: #888; font-size: 0.85em; }
-        .unread-badge { background: #dc3545; color: white; border-radius: 12px; padding: 2px 8px; font-size: 0.75em; }
-    </style>
+<%- include('partials/head') %>
 </head>
-<body class="forum-index">
-    <div id='wrapper'>
-        <div id='hdr'><div id='hdr-content'><div id='hdr-inner'>
-            <h1 id='forumTitle'><a href='/'>esoTalk Plus</a></h1>
-            <ul id='mainMenu'><li><a href='/'>Forum</a></li><li><a href='/messages'>✉ Messages</a></li></ul>
-        </div></div></div>
-        <div id='body'><div id='body-content'>
-            <div class="msg-container">
-                <h2>✉ Messages</h2>
-                <% if (conversations.length === 0) { %>
-                    <p>No messages yet. Start a conversation from a user's profile!</p>
-                <% } %>
-                <% conversations.forEach(conv => { %>
-                    <a href="/messages/chat/<%= conv.partner.id %>" class="conversation-item">
-                        <img src="<%= conv.partner.avatarUrl || '/img/default-avatar.png' %>" class="conv-avatar">
-                        <div class="conv-info">
-                            <h4><%= conv.partner.username %></h4>
-                            <p><%= conv.lastMessage.content.substring(0, 60) %>...</p>
-                        </div>
-                        <% if (conv.unread > 0) { %>
-                            <span class="unread-badge"><%= conv.unread %></span>
-                        <% } %>
-                    </a>
-                <% }); %>
-            </div>
-        </div></div>
-    </div>
+<body class='forum-index'>
+<div id='messages'></div>
+<div id='wrapper'>
+
+<%- include('partials/header') %>
+
+<div id='body'>
+<div id='body-content'>
+<div class='bodyHeader'>
+<h1>Messages</h1>
+</div>
+
+<% if (conversations.length === 0) { %>
+  <div class='area'>
+    <p style='text-align:center; color:#888; padding:20px;'>No messages yet. Start a conversation from a user's profile!</p>
+  </div>
+<% } else { %>
+  <ul class='list'>
+    <% conversations.forEach(conv => { %>
+      <li>
+        <a href='/messages/chat/<%= conv.partner.id %>' style='display:flex; align-items:center; gap:12px; padding:12px; text-decoration:none; color:inherit;'>
+          <img src='<%= conv.partner.avatarUrl || "/img/default-avatar.png" %>' class='avatar thumb' style='width:40px; height:40px; line-height:40px; font-size:20px;'>
+          <div style='flex:1;'>
+            <strong><%= conv.partner.username %></strong>
+            <p style='margin:2px 0 0; color:#888; font-size:85%;'><%= conv.lastMessage.content.substring(0, 60) %>...</p>
+          </div>
+          <% if (conv.unread > 0) { %>
+            <span class='badge'><%= conv.unread %></span>
+          <% } %>
+        </a>
+      </li>
+    <% }); %>
+  </ul>
+<% } %>
+
+</div>
+</div>
+
+<%- include('partials/footer') %>
+
+</div>
 </body>
 </html>

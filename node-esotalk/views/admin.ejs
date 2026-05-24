@@ -1,113 +1,113 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset='utf-8'>
-    <title><%= title %></title>
-    <link rel="stylesheet" href="/css/base.css">
-    <style>
-        .admin-container { max-width: 1000px; margin: 20px auto; padding: 20px; }
-        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 30px; }
-        .stat-card { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 10px; text-align: center; }
-        .stat-card h3 { margin: 0; font-size: 2em; }
-        .stat-card p { margin: 5px 0 0; opacity: 0.8; }
-        .section { background: #fff; border-radius: 8px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-        .section h2 { margin-top: 0; border-bottom: 2px solid #eee; padding-bottom: 10px; }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { text-align: left; padding: 10px; border-bottom: 1px solid #eee; }
-        th { background: #f8f9fa; }
-        .btn-sm { padding: 4px 10px; border: none; border-radius: 4px; cursor: pointer; color: white; font-size: 0.85em; }
-        .btn-danger { background: #dc3545; }
-        .btn-success { background: #28a745; }
-        .btn-warning { background: #ffc107; color: #333; }
-        .btn-info { background: #17a2b8; }
-        select { padding: 4px 8px; border-radius: 4px; border: 1px solid #ccc; }
-        .ip-form { display: flex; gap: 10px; margin-top: 10px; }
-        .ip-form input { padding: 6px 10px; border: 1px solid #ccc; border-radius: 4px; flex: 1; }
-    </style>
+<%- include('partials/head') %>
+<style>
+    .admin-container { max-width: 1000px; margin: 20px auto; }
+    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 30px; }
+    .stat-card { background: #364159; color: white; padding: 20px; border-radius: 4px; text-align: center; }
+    .stat-card h3 { margin: 0; font-size: 2em; }
+    .stat-card p { margin: 5px 0 0; opacity: 0.8; }
+    .admin-section { background: #fff; border: 1px solid #e1e1e1; border-radius: 3px; padding: 20px; margin-bottom: 20px; }
+    .admin-section h2 { margin-top: 0; border-bottom: 1px solid #e1e1e1; padding-bottom: 10px; font-size: 120%; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { text-align: left; padding: 8px; border-bottom: 1px solid #e1e1e1; }
+    th { background: #f8f8f8; font-weight: 600; }
+    .ip-form { display: flex; gap: 10px; margin-top: 10px; }
+    .ip-form input { padding: 6px 10px; border: 1px solid #ddd; border-radius: 3px; flex: 1; }
+</style>
 </head>
-<body class="forum-index">
-    <div id='wrapper'>
-        <div id='hdr'><div id='hdr-content'><div id='hdr-inner'>
-            <h1 id='forumTitle'><a href='/'>esoTalk Plus</a></h1>
-            <ul id='mainMenu'><li><a href='/'>Forum</a></li><li><a href='/admin' style="color:#ffc107;">⚙ Admin</a></li></ul>
-        </div></div></div>
-        <div id='body'><div id='body-content'>
-            <div class="admin-container">
-                <h1>Admin Dashboard</h1>
+<body class='forum-index'>
+<div id='messages'></div>
+<div id='wrapper'>
 
-                <div class="stats-grid">
-                    <div class="stat-card"><h3><%= totalUsers %></h3><p>Users</p></div>
-                    <div class="stat-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);"><h3><%= totalPosts %></h3><p>Posts</p></div>
-                    <div class="stat-card" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);"><h3><%= totalConversations %></h3><p>Threads</p></div>
-                    <div class="stat-card" style="background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%); color:#333;"><h3><%= pendingReports %></h3><p>Pending Reports</p></div>
-                </div>
+<%- include('partials/header') %>
 
-                <div class="section">
-                    <h2>User Management</h2>
-                    <table>
-                        <tr><th>Username</th><th>Email</th><th>Role</th><th>Banned</th><th>Actions</th></tr>
-                        <% recentUsers.forEach(u => { %>
-                        <tr>
-                            <td><a href="/profile/<%= u.username %>"><%= u.username %></a></td>
-                            <td><%= u.email %></td>
-                            <td>
-                                <form action="/admin/users/<%= u.id %>/role" method="POST" style="display:inline;">
-                                    <select name="role" onchange="this.form.submit()">
-                                        <option value="member" <%= u.role === 'member' ? 'selected' : '' %>>Member</option>
-                                        <option value="moderator" <%= u.role === 'moderator' ? 'selected' : '' %>>Moderator</option>
-                                        <option value="admin" <%= u.role === 'admin' ? 'selected' : '' %>>Admin</option>
-                                    </select>
-                                </form>
-                            </td>
-                            <td><%= u.isBanned ? '🔴 Yes' : '🟢 No' %></td>
-                            <td>
-                                <% if (!u.isBanned) { %>
-                                    <form action="/admin/users/<%= u.id %>/ban" method="POST" style="display:inline;">
-                                        <button class="btn-sm btn-danger">Ban</button>
-                                    </form>
-                                <% } else { %>
-                                    <form action="/admin/users/<%= u.id %>/unban" method="POST" style="display:inline;">
-                                        <button class="btn-sm btn-success">Unban</button>
-                                    </form>
-                                <% } %>
-                            </td>
-                        </tr>
-                        <% }); %>
-                    </table>
-                </div>
+<div id='body'>
+<div id='body-content'>
+<div class='bodyHeader'>
+<h1>Admin Dashboard</h1>
+</div>
 
-                <div class="section">
-                    <h2>IP Banning</h2>
-                    <form action="/admin/ban-ip" method="POST" class="ip-form">
-                        <input type="text" name="ip" placeholder="IP Address (e.g. 192.168.1.1)" required>
-                        <input type="text" name="reason" placeholder="Reason">
-                        <button class="btn-sm btn-danger">Ban IP</button>
-                    </form>
-                    <table style="margin-top: 15px;">
-                        <tr><th>IP</th><th>Reason</th><th>Banned At</th></tr>
-                        <% bannedIPs.forEach(ip => { %>
-                        <tr><td><%= ip.ipAddress %></td><td><%= ip.reason %></td><td><%= ip.bannedAt %></td></tr>
-                        <% }); %>
-                    </table>
-                </div>
-
-                <div class="section">
-                    <h2>Audit Log</h2>
-                    <a href="/admin/reports" class="btn-sm btn-warning" style="text-decoration:none; display:inline-block; margin-bottom:10px;">📋 View Reports Queue (<%= pendingReports %>)</a>
-                    <table>
-                        <tr><th>Action</th><th>Actor</th><th>Target</th><th>Time</th></tr>
-                        <% recentLogs.forEach(log => { %>
-                        <tr>
-                            <td><%= log.action %></td>
-                            <td><%= log.actor ? log.actor.username : 'System' %></td>
-                            <td><%= log.targetType %> #<%= log.targetId %></td>
-                            <td><%= log.createdAt %></td>
-                        </tr>
-                        <% }); %>
-                    </table>
-                </div>
-            </div>
-        </div></div>
+<div class='admin-container'>
+    <div class='stats-grid'>
+        <div class='stat-card'><h3><%= totalUsers %></h3><p>Users</p></div>
+        <div class='stat-card'><h3><%= totalPosts %></h3><p>Posts</p></div>
+        <div class='stat-card'><h3><%= totalConversations %></h3><p>Threads</p></div>
+        <div class='stat-card'><h3><%= pendingReports %></h3><p>Pending Reports</p></div>
     </div>
+
+    <div class='admin-section'>
+        <h2>User Management</h2>
+        <table>
+            <tr><th>Username</th><th>Email</th><th>Role</th><th>Banned</th><th>Actions</th></tr>
+            <% recentUsers.forEach(u => { %>
+            <tr>
+                <td><a href='/profile/<%= u.username %>'><%= u.username %></a></td>
+                <td><%= u.email %></td>
+                <td>
+                    <form action='/admin/users/<%= u.id %>/role' method='POST' style='display:inline;'>
+                        <select name='role' onchange='this.form.submit()'>
+                            <option value='member' <%= u.role === 'member' ? 'selected' : '' %>>Member</option>
+                            <option value='moderator' <%= u.role === 'moderator' ? 'selected' : '' %>>Moderator</option>
+                            <option value='admin' <%= u.role === 'admin' ? 'selected' : '' %>>Admin</option>
+                        </select>
+                    </form>
+                </td>
+                <td><%= u.isBanned ? 'Yes' : 'No' %></td>
+                <td>
+                    <% if (!u.isBanned) { %>
+                        <form action='/admin/users/<%= u.id %>/ban' method='POST' style='display:inline;'>
+                            <button class='button'>Ban</button>
+                        </form>
+                    <% } else { %>
+                        <form action='/admin/users/<%= u.id %>/unban' method='POST' style='display:inline;'>
+                            <button class='button'>Unban</button>
+                        </form>
+                    <% } %>
+                </td>
+            </tr>
+            <% }); %>
+        </table>
+    </div>
+
+    <div class='admin-section'>
+        <h2>IP Banning</h2>
+        <form action='/admin/ban-ip' method='POST' class='ip-form'>
+            <input type='text' name='ip' placeholder='IP Address (e.g. 192.168.1.1)' required>
+            <input type='text' name='reason' placeholder='Reason'>
+            <button class='button'>Ban IP</button>
+        </form>
+        <table style='margin-top:15px;'>
+            <tr><th>IP</th><th>Reason</th><th>Banned At</th></tr>
+            <% bannedIPs.forEach(ip => { %>
+            <tr><td><%= ip.ipAddress %></td><td><%= ip.reason %></td><td><%= ip.bannedAt %></td></tr>
+            <% }); %>
+        </table>
+    </div>
+
+    <div class='admin-section'>
+        <h2>Audit Log</h2>
+        <a href='/admin/reports' class='button' style='margin-bottom:10px;'>View Reports Queue (<%= pendingReports %>)</a>
+        <table>
+            <tr><th>Action</th><th>Actor</th><th>Target</th><th>Time</th></tr>
+            <% recentLogs.forEach(log => { %>
+            <tr>
+                <td><%= log.action %></td>
+                <td><%= log.actor ? log.actor.username : 'System' %></td>
+                <td><%= log.targetType %> #<%= log.targetId %></td>
+                <td><%= log.createdAt %></td>
+            </tr>
+            <% }); %>
+        </table>
+    </div>
+</div>
+
+</div>
+</div>
+
+<%- include('partials/footer') %>
+
+</div>
 </body>
 </html>

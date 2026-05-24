@@ -1,65 +1,67 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset='utf-8'>
-    <title><%= title %></title>
-    <link rel="stylesheet" href="/css/base.css">
-    <style>
-        .search-container { max-width: 800px; margin: 20px auto; padding: 20px; }
-        .search-bar { display: flex; gap: 10px; margin-bottom: 25px; }
-        .search-bar input { flex: 1; padding: 12px 16px; border: 2px solid #ddd; border-radius: 8px; font-size: 1em; }
-        .search-bar button { padding: 12px 24px; background: #007bff; color: white; border: none; border-radius: 8px; cursor: pointer; }
-        .result-section h3 { border-bottom: 1px solid #eee; padding-bottom: 8px; }
-        .result-item { padding: 10px 0; border-bottom: 1px solid #f0f0f0; }
-        .result-item a { text-decoration: none; color: #007bff; font-weight: bold; }
-        .result-item p { margin: 4px 0 0; color: #666; font-size: 0.9em; }
-        .no-results { text-align: center; color: #999; padding: 30px; }
-    </style>
+<%- include('partials/head') %>
 </head>
-<body class="forum-index">
-    <div id='wrapper'>
-        <div id='hdr'><div id='hdr-content'><div id='hdr-inner'>
-            <h1 id='forumTitle'><a href='/'>esoTalk Plus</a></h1>
-            <ul id='mainMenu'><li><a href='/'>Forum</a></li></ul>
-        </div></div></div>
-        <div id='body'><div id='body-content'>
-            <div class="search-container">
-                <h2>🔍 Search</h2>
-                <form action="/search" method="GET" class="search-bar">
-                    <input type="text" name="q" value="<%= query %>" placeholder="Search threads and posts..." autofocus>
-                    <button type="submit">Search</button>
-                </form>
+<body class='forum-index'>
+<div id='messages'></div>
+<div id='wrapper'>
 
-                <% if (results && results.conversations && results.conversations.length > 0) { %>
-                    <div class="result-section">
-                        <h3>Threads (<%= results.conversations.length %>)</h3>
-                        <% results.conversations.forEach(c => { %>
-                            <div class="result-item">
-                                <a href="/conversation/<%= c.slug %>"><%= c.title %></a>
-                                <p>by <%= c.startUser ? c.startUser.username : 'Unknown' %></p>
-                            </div>
-                        <% }); %>
-                    </div>
-                <% } %>
+<%- include('partials/header') %>
 
-                <% if (results && results.posts && results.posts.length > 0) { %>
-                    <div class="result-section">
-                        <h3>Posts (<%= results.posts.length %>)</h3>
-                        <% results.posts.forEach(p => { %>
-                            <div class="result-item">
-                                <a href="/conversation/<%= p.Conversation ? p.Conversation.slug : '#' %>"><%= p.Conversation ? p.Conversation.title : 'Unknown Thread' %></a>
-                                <p><%= p.content.substring(0, 150) %>...</p>
-                                <p style="font-size:0.8em; color: #aaa;">by <%= p.User ? p.User.username : 'Unknown' %></p>
-                            </div>
-                        <% }); %>
-                    </div>
-                <% } %>
+<div id='body'>
+<div id='body-content'>
+<div class='bodyHeader'>
+<h1>Search</h1>
+</div>
 
-                <% if (query && (!results || (results.conversations.length === 0 && results.posts.length === 0))) { %>
-                    <div class="no-results">No results found for "<%= query %>"</div>
-                <% } %>
-            </div>
-        </div></div>
-    </div>
+<div class='area' style='margin-bottom:20px;'>
+<form action='/search' method='GET' class='search' style='float:none; padding:10px;'>
+  <i class='icon-search' style='margin-top:8px;'></i>
+  <input type='text' name='q' value='<%= query %>' placeholder='Search threads and posts...' autofocus style='width:100%; padding:8px 25px 8px 25px;'>
+</form>
+</div>
+
+<% if (typeof results !== 'undefined' && results && results.conversations && results.conversations.length > 0) { %>
+  <div class='area'>
+    <h3 style='padding:10px 0;'>Threads (<%= results.conversations.length %>)</h3>
+    <ul class='list'>
+      <% results.conversations.forEach(c => { %>
+        <li>
+          <a href='/conversation/<%= c.slug %>'><strong><%= c.title %></strong></a>
+          <span class='action'>by <span class='name'><%= c.startUser ? c.startUser.username : 'Unknown' %></span></span>
+        </li>
+      <% }); %>
+    </ul>
+  </div>
+<% } %>
+
+<% if (typeof results !== 'undefined' && results && results.posts && results.posts.length > 0) { %>
+  <div class='area'>
+    <h3 style='padding:10px 0;'>Posts (<%= results.posts.length %>)</h3>
+    <ul class='list'>
+      <% results.posts.forEach(p => { %>
+        <li>
+          <a href='/conversation/<%= p.Conversation ? p.Conversation.slug : '#' %>'><strong><%= p.Conversation ? p.Conversation.title : 'Unknown Thread' %></strong></a>
+          <p style='color:#888; font-size:85%; margin:4px 0 0;'><%= p.content.substring(0, 150) %>...</p>
+          <small class='subText'>by <%= p.User ? p.User.username : 'Unknown' %></small>
+        </li>
+      <% }); %>
+    </ul>
+  </div>
+<% } %>
+
+<% if (query && (!results || ((!results.conversations || results.conversations.length === 0) && (!results.posts || results.posts.length === 0)))) { %>
+  <div class='area'>
+    <p style='text-align:center; color:#888; padding:20px;'>No results found for "<%= query %>"</p>
+  </div>
+<% } %>
+
+</div>
+</div>
+
+<%- include('partials/footer') %>
+
+</div>
 </body>
 </html>

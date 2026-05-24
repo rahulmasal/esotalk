@@ -652,8 +652,8 @@ $.fn.tooltip = function(options) {
 			tooltip.removeClass().addClass("tooltip").hide().data("parent", elm);
 			if (options.className) tooltip.addClass(options.className);
 
-			// Set the tooltip value.
-			tooltip.html(elm.data("title"));
+			// Set the tooltip value (escape HTML to prevent XSS).
+			tooltip.text(elm.data("title"));
 
 			// Work out the right position...
 			var left = elm.offset().left, top = elm.offset().top - tooltip.outerHeight() - 3;

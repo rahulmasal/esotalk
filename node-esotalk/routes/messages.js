@@ -83,6 +83,10 @@ router.post('/send', requireAuth, async (req, res) => {
     try {
         const { receiverId, content } = req.body;
         if (!content || !content.trim()) return res.redirect('back');
+        if (parseInt(receiverId) === req.user.id) return res.redirect('back');
+
+        const receiver = await User.findByPk(parseInt(receiverId));
+        if (!receiver) return res.redirect('back');
 
         const message = await Message.create({
             senderId: req.user.id,

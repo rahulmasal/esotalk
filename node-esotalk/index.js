@@ -52,7 +52,8 @@ app.set('views', path.join(__dirname, 'views'));
 // SECURITY MIDDLEWARE
 // ──────────────────────────────────────
 app.use(helmet({
-    contentSecurityPolicy: false // Disabled to allow inline scripts from addons
+    contentSecurityPolicy: false, // Disabled to allow inline scripts from addons
+    crossOriginEmbedderPolicy: false
 }));
 
 // Global Rate Limiter: 100 requests per 15 minutes per IP
@@ -86,19 +87,42 @@ let redisClient = createClient({
 redisClient.connect().catch(console.error);
 
 // Session
-app.use(session({
-  secret: process.env.SESSION_SECRET || 'your-secret-key',
+const sessionSecret = process.env.SESSION_SECRET;
+if (!sessionSecret) {
+  console.error('FATAL: SESSION_SECRET is not set in .env');
+  process.exit(1);
+}
+
+const sessionMiddleware = session({
+  secret: sessionSecret,
   store: new RedisStore({
     client: redisClient,
     prefix: "esotalk:",
   }),
   resave: false,
   saveUninitialized: false,
-  cookie: { secure: false } // Set to true in production with HTTPS
-}));
+  cookie: {
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax'
+  }
+});
+
+app.use(sessionMiddleware);
 
 app.use(passport.initialize());
 app.use(passport.session());
+
+// Make user available in all EJS templates
+app.use((req, res, next) => {
+  res.locals.user = req.user || null;
+  next();
+});
+
+// Share session with Socket.IO
+const wrap = middleware => (socket, next) => middleware(socket.request, {}, next);
+io.use(wrap(sessionMiddleware));
+io.use(wrap(passport.initialize()));
+io.use(wrap(passport.session()));
 
 // Pass user to views
 app.use((req, res, next) => {
@@ -116,27 +140,28 @@ const addonManager = require('./addons/AddonManager');
 // Socket.io integration
 io.on('connection', (socket) => {
   console.log('A user connected');
-  
-  // Join private room for DMs
-  socket.on('joinRoom', (userId) => {
-    socket.join(`user_${userId}`);
-  });
 
-  // Online status tracking
-  socket.on('setOnline', (userId) => {
-    socket.userId = userId;
-    socket.broadcast.emit('userOnline', userId);
-  });
+  const sessionUserId = socket.request?.session?.passport?.user;
+  if (!sessionUserId) {
+    socket.disconnect(true);
+    return;
+  }
+
+  // Join private room for DMs — only the authenticated user's own room
+  socket.join(`user_${sessionUserId}`);
+
+  // Online status tracking — only broadcast the authenticated user's ID
+  socket.broadcast.emit('userOnline', sessionUserId);
 
   // Typing indicators
   socket.on('typing', (data) => {
-    io.to(`user_${data.receiverId}`).emit('userTyping', { senderId: data.senderId, senderName: data.senderName });
+    io.to(`user_${data.receiverId}`).emit('userTyping', { senderId: sessionUserId, senderName: data.senderName });
   });
 
   socket.on('stopTyping', (data) => {
-    io.to(`user_${data.receiverId}`).emit('userStopTyping', { senderId: data.senderId });
+    io.to(`user_${data.receiverId}`).emit('userStopTyping', { senderId: sessionUserId });
   });
-  
+
   socket.on('disconnect', () => {
     console.log('User disconnected');
   });
@@ -162,6 +187,12 @@ app.use('/notifications', require('./routes/notifications'));
 app.use('/upload', require('./routes/uploads'));
 app.use('/profile', require('./routes/profile'));
 app.use('/', globalLimiter, require('./routes/forum'));
+
+// Global error handler
+app.use((err, req, res, next) => {
+  console.error('Unhandled error:', err);
+  res.status(err.status || 500).send('Internal Server Error');
+});
 
 // Start server
 const PORT = process.env.PORT || 3000;

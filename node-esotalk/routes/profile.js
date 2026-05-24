@@ -14,7 +14,17 @@ const avatarStorage = multer.diskStorage({
     destination: (req, file, cb) => cb(null, path.join(__dirname, '..', 'uploads')),
     filename: (req, file, cb) => cb(null, `avatar-${req.user.id}${path.extname(file.originalname)}`)
 });
-const avatarUpload = multer({ storage: avatarStorage, limits: { fileSize: 2 * 1024 * 1024 } });
+const avatarUpload = multer({
+    storage: avatarStorage,
+    limits: { fileSize: 2 * 1024 * 1024 },
+    fileFilter: (req, file, cb) => {
+        const allowed = /jpeg|jpg|png|gif|webp/;
+        const ext = allowed.test(path.extname(file.originalname).toLowerCase());
+        const mime = allowed.test(file.mimetype.replace('image/', ''));
+        if (ext && mime) return cb(null, true);
+        cb(new Error('Only image files (jpg, png, gif, webp) are allowed'));
+    }
+});
 
 // View own or another user's profile
 router.get('/:username', async (req, res) => {
@@ -49,7 +59,9 @@ router.get('/:username', async (req, res) => {
 router.post('/edit', requireAuth, async (req, res) => {
     try {
         const { bio } = req.body;
-        await User.update({ bio }, { where: { id: req.user.id } });
+        // Sanitize bio: strip HTML tags to prevent XSS
+        const sanitizedBio = (bio || '').replace(/<[^>]*>/g, '').substring(0, 500);
+        await User.update({ bio: sanitizedBio }, { where: { id: req.user.id } });
         res.redirect(`/profile/${req.user.username}`);
     } catch (err) {
         console.error(err);

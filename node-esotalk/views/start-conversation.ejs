@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+<%- include('partials/head') %>
+</head>
+<body class='forum-index'>
+<div id='messages'></div>
+<div id='wrapper'>
+
+<%- include('partials/header') %>
+
+<div id='body'>
+<div id='body-content'>
+<div class='bodyHeader'>
+<h1>Start New Conversation</h1>
+</div>
+
+<div class='sheet active' style='margin:0 auto; width:700px;'>
+  <div class='section'>
+    <form action='/conversation/start' method='POST'>
+      <ul class='form'>
+        <li>
+          <label>Title</label>
+          <input type='text' name='title' placeholder='Conversation title' required>
+        </li>
+        <li>
+          <label>Channel</label>
+          <select name='channelId'>
+            <option value=''>-- None --</option>
+            <% channels.forEach(ch => { %>
+              <option value='<%= ch.id %>'><%= ch.title %></option>
+            <% }); %>
+          </select>
+        </li>
+        <li>
+          <label>Content</label>
+          <textarea name='content' rows='6' placeholder='Write your post...' required style='width:100%; padding:8px; border:1px solid #ddd; border-radius:3px; box-sizing:border-box;'></textarea>
+        </li>
+      </ul>
+      <div class='buttons'>
+        <button type='submit' class='button submit' style='background:#364159; color:#fff;'>Create Conversation</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+</div>
+</div>
+
+<%- include('partials/footer') %>
+
+</div>
+
+<script src='/js/lib/jquery.js'></script>
+<script src='/js/global.js'></script>
+</body>
+</html>

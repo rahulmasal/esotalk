@@ -21,6 +21,21 @@ module.exports = function startSetupServer() {
         const data = req.body;
         let error = null;
 
+        // Sanitize inputs: strip newlines to prevent .env injection
+        function sanitize(val) {
+            return String(val || '').replace(/[\r\n]/g, '').trim();
+        }
+        data.db_host = sanitize(data.db_host);
+        data.db_port = sanitize(data.db_port);
+        data.db_name = sanitize(data.db_name);
+        data.db_user = sanitize(data.db_user);
+        data.db_pass = sanitize(data.db_pass);
+        data.redis_url = sanitize(data.redis_url);
+        data.smtp_host = sanitize(data.smtp_host);
+        data.smtp_port = sanitize(data.smtp_port);
+        data.smtp_user = sanitize(data.smtp_user);
+        data.smtp_pass = sanitize(data.smtp_pass);
+
         try {
             // 1. Verify PostgreSQL connection
             const sequelize = new Sequelize(data.db_name, data.db_user, data.db_pass, {

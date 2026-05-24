@@ -1,0 +1,30 @@
+<div id='hdr'>
+<div id='hdr-content'>
+<div id='hdr-inner'>
+
+<h1 id='forumTitle'><a href='/'>esoTalk Plus</a></h1>
+
+<ul id='mainMenu' class='menu'>
+  <li><a href="/">Discussions</a></li>
+  <li><a href="/channels">Channels</a></li>
+  <li><a href="/search">Search</a></li>
+</ul>
+
+<ul id='userMenu' class='menu'>
+  <% if (typeof user !== 'undefined' && user) { %>
+    <li><a href="/notifications">Notifications</a></li>
+    <li><a href="/messages">Messages</a></li>
+    <li><a href="/profile/<%= user.username %>"><%= user.username %></a></li>
+    <li><a href="/auth/logout">Log Out</a></li>
+  <% } else { %>
+    <li><a href="/auth/login" class="link-login">Log In</a></li>
+    <li><a href="/auth/signup" class="link-signup">Sign Up</a></li>
+  <% } %>
+  <% if (typeof user !== 'undefined' && user) { %>
+    <li><a href='/conversation/start' class='link-newConversation button'>New Conversation</a></li>
+  <% } %>
+</ul>
+
+</div>
+</div>
+</div>

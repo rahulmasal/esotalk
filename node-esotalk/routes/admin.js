@@ -56,6 +56,10 @@ router.post('/reports/:id/status', requireModerator, async (req, res) => {
     try {
         const report = await Report.findByPk(req.params.id);
         if (!report) return res.status(404).send('Report not found');
+        const allowedStatuses = ['pending', 'reviewed', 'dismissed'];
+        if (!allowedStatuses.includes(req.body.status)) {
+            return res.status(400).send('Invalid status');
+        }
         report.status = req.body.status;
         await report.save();
 
@@ -190,19 +194,19 @@ router.post('/posts/:id/delete', requireModerator, async (req, res) => {
 
 // ──────────────────────────────────────
 // SECRET ADMIN SETUP (No login required)
-// URL: /admin/setup?token=YOUR_TOKEN&username=USERNAME
+// POST /admin/setup with JSON body { token, username }
 // Requires ADMIN_SETUP_TOKEN in .env
 // ──────────────────────────────────────
-router.get('/setup', async (req, res) => {
+router.post('/setup', async (req, res) => {
     try {
         const setupToken = process.env.ADMIN_SETUP_TOKEN;
         if (!setupToken) {
             return res.status(403).send('Admin setup is disabled. Set ADMIN_SETUP_TOKEN in your .env file.');
         }
 
-        const { token, username } = req.query;
+        const { token, username } = req.body;
         if (!token || !username) {
-            return res.status(400).send('Usage: /admin/setup?token=YOUR_TOKEN&username=USERNAME');
+            return res.status(400).send('POST body must include token and username.');
         }
 
         if (token !== setupToken) {
@@ -217,7 +221,7 @@ router.get('/setup', async (req, res) => {
         user.role = 'admin';
         await user.save();
 
-        res.send(`✅ User "${username}" has been promoted to admin! You can now log in and visit /admin. Remove ADMIN_SETUP_TOKEN from .env for security.`);
+        res.send(`User "${username}" has been promoted to admin! Remove ADMIN_SETUP_TOKEN from .env for security.`);
     } catch (err) {
         console.error(err);
         res.status(500).send('Setup failed.');

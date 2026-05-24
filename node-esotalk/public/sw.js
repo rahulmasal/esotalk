@@ -32,12 +32,22 @@ self.addEventListener('fetch', (event) => {
   // Skip non-GET requests
   if (event.request.method !== 'GET') return;
 
+  // Skip caching authenticated requests (contain session cookies)
+  if (event.request.headers.get('Cookie')) {
+    event.respondWith(
+      fetch(event.request).catch(() => caches.match(event.request))
+    );
+    return;
+  }
+
   event.respondWith(
     fetch(event.request)
       .then((response) => {
-        // Cache successful responses
-        const clone = response.clone();
-        caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+        // Only cache successful responses
+        if (response && response.status === 200) {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+        }
         return response;
       })
       .catch(() => {

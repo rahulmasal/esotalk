@@ -1,45 +1,44 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset='utf-8'>
-    <title><%= title %></title>
-    <link rel="stylesheet" href="/css/base.css">
-    <style>
-        .auth-container { max-width: 400px; margin: 40px auto; padding: 20px; background: #fff; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); text-align: center;}
-        .auth-container h2 { margin-bottom: 20px; }
-        .auth-btn { display: block; width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 4px; text-decoration: none; color: white; border: none; font-weight: bold; cursor: pointer; }
-        .btn-local { background-color: #28a745; }
-        input[type="text"] { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; text-align: center; letter-spacing: 2px; font-size: 1.2em;}
-        .error-msg { color: #dc3545; margin-bottom: 15px; font-weight: bold; }
-        .qr-box { margin: 15px auto; padding: 10px; border: 2px dashed #ddd; display: inline-block; }
-    </style>
+<%- include('partials/head') %>
 </head>
-<body class="forum-index">
-    <div id='wrapper'>
-        <div id='hdr'><div id='hdr-content'><div id='hdr-inner'><h1 id='forumTitle'><a href='/'>esoTalk Plus</a></h1></div></div></div>
-        <div id='body'>
-            <div id='body-content'>
-                <div class="auth-container">
-                    <h2>Setup Authenticator App</h2>
-                    <p>To secure your account, scan the QR code below with Google Authenticator or Authy.</p>
-                    
-                    <div class="qr-box">
-                        <img src="<%= qrImage %>" alt="2FA QR Code">
-                    </div>
-                    
-                    <p style="font-size: 0.8em; color: #666; word-break: break-all;">Manual Key: <%= secret %></p>
+<body class='forum-index'>
+<div id='messages'></div>
+<div id='wrapper'>
 
-                    <% if (typeof req !== 'undefined' && req.query.error === 'invalid') { %>
-                        <div class="error-msg">Invalid Code. Please try again.</div>
-                    <% } %>
-                    
-                    <form action="/auth/setup-2fa" method="POST">
-                        <input type="text" name="token" placeholder="000000" maxlength="6" required autofocus>
-                        <button type="submit" class="auth-btn btn-local">Verify & Finish Registration</button>
-                    </form>
-                </div>
-            </div>
-        </div>
+<%- include('partials/header') %>
+
+<div id='body'>
+<div id='body-content'>
+<div class='bodyHeader'>
+<h1>Setup Two-Factor Authentication</h1>
+</div>
+
+<div class='sheet active' style='margin:0 auto; width:500px;'>
+  <div class='section' style='text-align:center;'>
+    <p>To secure your account, scan the QR code below with Google Authenticator or Authy.</p>
+    <div style='margin:15px auto; padding:10px; border:2px dashed #ddd; display:inline-block;'>
+      <img src='<%= qrImage %>' alt='2FA QR Code'>
     </div>
+    <p style='font-size:85%; color:#888; word-break:break-all;'>Manual Key: <%= secret %></p>
+    <% if (error) { %>
+      <div class='message warning'><%= error %></div>
+    <% } %>
+    <form action='/auth/setup-2fa' method='POST' style='margin-top:15px;'>
+      <input type='text' name='token' placeholder='000000' maxlength='6' required autofocus style='text-align:center; letter-spacing:2px; font-size:1.2em; width:200px;'>
+      <div class='buttons' style='margin-top:15px;'>
+        <button type='submit' class='button submit' style='background:#364159; color:#fff;'>Verify & Finish Registration</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+</div>
+</div>
+
+<%- include('partials/footer') %>
+
+</div>
 </body>
 </html>

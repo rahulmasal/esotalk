@@ -1,35 +1,40 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset='utf-8'>
-    <title><%= title %></title>
-    <link rel="stylesheet" href="/css/base.css">
-    <style>
-        .bookmark-container { max-width: 700px; margin: 20px auto; padding: 20px; }
-        .bookmark-item { padding: 12px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
-        .bookmark-item a { text-decoration: none; color: #007bff; font-weight: bold; }
-        .btn-sm { padding: 4px 10px; border: none; border-radius: 4px; cursor: pointer; color: white; background: #dc3545; font-size: 0.85em; }
-    </style>
+<%- include('partials/head') %>
 </head>
-<body class="forum-index">
-    <div id='wrapper'>
-        <div id='hdr'><div id='hdr-content'><div id='hdr-inner'>
-            <h1 id='forumTitle'><a href='/'>esoTalk Plus</a></h1>
-        </div></div></div>
-        <div id='body'><div id='body-content'>
-            <div class="bookmark-container">
-                <h2>🔖 My Bookmarks</h2>
-                <% if (bookmarks.length === 0) { %>
-                    <p>No bookmarks saved yet.</p>
-                <% } %>
-                <% bookmarks.forEach(b => { %>
-                    <div class="bookmark-item">
-                        <a href="/conversation/<%= b.Conversation ? b.Conversation.slug : '#' %>"><%= b.Conversation ? b.Conversation.title : 'Unknown' %></a>
-                        <button class="btn-sm" onclick="fetch('/bookmark/<%= b.conversationId %>', {method:'DELETE'}).then(()=>location.reload())">Remove</button>
-                    </div>
-                <% }); %>
-            </div>
-        </div></div>
-    </div>
+<body class='forum-index'>
+<div id='messages'></div>
+<div id='wrapper'>
+
+<%- include('partials/header') %>
+
+<div id='body'>
+<div id='body-content'>
+<div class='bodyHeader'>
+<h1>My Bookmarks</h1>
+</div>
+
+<% if (bookmarks.length === 0) { %>
+  <div class='area'>
+    <p style='text-align:center; color:#888; padding:20px;'>No bookmarks saved yet.</p>
+  </div>
+<% } else { %>
+  <ul class='list'>
+    <% bookmarks.forEach(b => { %>
+      <li style='display:flex; justify-content:space-between; align-items:center;'>
+        <a href='/conversation/<%= b.Conversation ? b.Conversation.slug : '#' %>'><%= b.Conversation ? b.Conversation.title : 'Unknown' %></a>
+        <button class='button' onclick="fetch('/bookmark/<%= b.conversationId %>', {method:'DELETE'}).then(()=>location.reload())">Remove</button>
+      </li>
+    <% }); %>
+  </ul>
+<% } %>
+
+</div>
+</div>
+
+<%- include('partials/footer') %>
+
+</div>
 </body>
 </html>

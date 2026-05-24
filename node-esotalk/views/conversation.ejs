@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+<%- include('partials/head') %>
+</head>
+<body class='forum-index'>
+<div id='messages'></div>
+<div id='wrapper'>
+
+<%- include('partials/header') %>
+
+<div id='body'>
+<div id='body-content'>
+<div class='bodyHeader'>
+<h1 id='conversationTitle'><%= conversation.title %></h1>
+<span class='action'>
+  <span class='name'><%= conversation.startUser ? conversation.startUser.username : 'Unknown' %></span>
+  started <%= new Date(conversation.createdAt).toLocaleDateString() %>
+</span>
+</div>
+
+<% if (typeof poll !== 'undefined' && poll) { %>
+  <div class='area' style='margin-bottom:20px; padding:15px;'>
+    <h3><%= poll.question %></h3>
+    <% poll.options.forEach((opt, i) => { %>
+      <div style='margin:5px 0;'>
+        <form action='/poll/<%= poll.id %>/vote' method='POST' style='display:inline;'>
+          <input type='hidden' name='optionIndex' value='<%= i %>'>
+          <button type='submit' class='button'><%= opt.text %> (<%= opt.votes ? opt.votes.length : 0 %> votes)</button>
+        </form>
+      </div>
+    <% }); %>
+  </div>
+<% } %>
+
+<ul class='postList' id='postList'>
+<% posts.forEach(post => { %>
+  <li class='post hasControls'>
+    <div class='avatar'><img src='<%= post.User ? (post.User.avatarUrl || '/img/default-avatar.png') : '/img/default-avatar.png' %>' style='width:64px; height:64px; border-radius:50%;'></div>
+    <div class='thing postContent'>
+      <div class='postHeader'>
+        <h3><a href='/profile/<%= post.User ? post.User.username : '' %>'><%= post.User ? post.User.username : 'Unknown' %></a></h3>
+        <span class='info'>
+          <span><%= new Date(post.createdAt).toLocaleString() %></span>
+          <% if (post.User) { %><span>Rep: <%= post.User.reputation || 0 %></span><% } %>
+        </span>
+        <% if (typeof user !== 'undefined' && user) { %>
+          <ul class='controls'>
+            <% if (user.id === (post.User ? post.User.id : 0) || ['admin','moderator'].includes(user.role)) { %>
+              <li><a class='control-edit icon-pencil' href='#' title='Edit'></a></li>
+            <% } %>
+            <li><a class='control-flag icon-flag' href='#' title='Report'></a></li>
+          </ul>
+        <% } %>
+      </div>
+      <div class='postBody'>
+        <%- post.content %>
+      </div>
+    </div>
+  </li>
+<% }); %>
+</ul>
+
+<% if (typeof user !== 'undefined' && user) { %>
+  <div id='conversationReply' class='area'>
+    <h3>Reply</h3>
+    <form action='/conversation/<%= conversation.slug %>/reply' method='POST'>
+      <textarea name='content' rows='4' placeholder='Write your reply...' required style='width:100%; padding:10px; border:1px solid #ddd; border-radius:3px; box-sizing:border-box; resize:vertical;'></textarea>
+      <div style='margin-top:10px;'>
+        <button type='submit' class='button submit' style='background:#364159; color:#fff; padding:8px 16px;'>Post Reply</button>
+      </div>
+    </form>
+  </div>
+<% } else { %>
+  <div class='logInToReply'>
+    <div class='thing postContent'>
+      <div class='postHeader'><h3>Write a reply...</h3></div>
+      <div class='postBody'>
+        <p><a href='/auth/login'>Log in</a> to reply.</p>
+      </div>
+    </div>
+  </div>
+<% } %>
+
+</div>
+</div>
+
+<%- include('partials/footer') %>
+
+</div>
+
+<script src='/js/lib/jquery.js'></script>
+<script src='/socket.io/socket.io.js'></script>
+<script src='/js/global.js'></script>
+<script src='/js/conversation.js'></script>
+</body>
+</html>

@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const passport = require('passport');
 const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
 const User = require('../models/User');
 
 // GET routes
@@ -33,14 +34,23 @@ router.post('/signup', async (req, res) => {
       return res.render('signup', { title: 'Sign Up', error: 'Disposable email addresses are not permitted.' });
     }
 
-    // 2. Check if user already exists
-    let user = await User.findOne({ where: { email } });
-    if (user) {
-      return res.render('signup', { title: 'Sign Up', error: 'Email already exists' });
+    // 1.5. Validate password strength
+    if (!password || password.length < 8) {
+      return res.render('signup', { title: 'Sign Up', error: 'Password must be at least 8 characters.' });
     }
 
-    // 3. Generate 6-digit OTP
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    // 2. Check if user already exists
+    let existingEmail = await User.findOne({ where: { email } });
+    if (existingEmail) {
+      return res.render('signup', { title: 'Sign Up', error: 'An account with that email already exists.' });
+    }
+    let existingUsername = await User.findOne({ where: { username } });
+    if (existingUsername) {
+      return res.render('signup', { title: 'Sign Up', error: 'That username is already taken.' });
+    }
+
+    // 3. Generate 6-digit OTP using cryptographically secure PRNG
+    const otp = crypto.randomInt(100000, 999999).toString();
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // 4. Temporarily stage user in Redis-backed Session (Expires automatically on session timeout)
@@ -74,7 +84,7 @@ router.get('/verify-otp', (req, res) => {
 router.post('/resend-otp', async (req, res) => {
     if (!req.session.stagedUser) return res.redirect('/auth/signup');
     
-    const newOtp = Math.floor(100000 + Math.random() * 900000).toString();
+    const newOtp = crypto.randomInt(100000, 999999).toString();
     req.session.stagedUser.otp = newOtp;
     
     console.log(`\n\n=== RESENT DEVELOPMENT OTP: ${newOtp} ===\n\n`);
@@ -92,7 +102,7 @@ router.post('/verify-otp', async (req, res) => {
 
         const { code } = req.body;
         
-        if (code !== stagedUser.otp) {
+        if (code.length !== stagedUser.otp.length || !crypto.timingSafeEqual(Buffer.from(code), Buffer.from(stagedUser.otp))) {
             return res.render('verify-otp', { title: 'Verify Email', error: 'Invalid OTP Code. Please try again.', email: stagedUser.email });
         }
 
@@ -116,7 +126,8 @@ router.get('/setup-2fa', async (req, res) => {
     const otpauthUrl = authenticator.keyuri(stagedUser.email, 'esoTalk Plus', secret);
     const qrImage = await qrcode.toDataURL(otpauthUrl);
 
-    res.render('setup-2fa', { title: 'Setup 2FA', qrImage, secret });
+    const error = req.query.error === 'invalid' ? 'Invalid Code. Please try again.' : null;
+    res.render('setup-2fa', { title: 'Setup 2FA', qrImage, secret, error });
 });
 
 // Verify 2FA and Finalize Registration
@@ -162,8 +173,16 @@ router.post('/login', async (req, res, next) => {
         const { email, password } = req.body;
         const user = await User.findOne({ where: { email } });
         
-        if (!user || !user.isTwoFactorEnabled) {
-             return res.render('login', { title: 'Log In', error: 'Invalid credentials or missing 2FA.' });
+        if (!user) {
+             return res.render('login', { title: 'Log In', error: 'Invalid credentials.' });
+        }
+
+        if (user.isBanned) {
+             return res.render('login', { title: 'Log In', error: 'Your account has been suspended.' });
+        }
+
+        if (!user.isTwoFactorEnabled) {
+             return res.render('login', { title: 'Log In', error: 'Please complete 2FA setup first.' });
         }
 
         const isMatch = await bcrypt.compare(password, user.password);
@@ -222,10 +241,10 @@ const handleOAuthCallback = (strategy) => {
             }
             if (info && info.profile) {
                 // New user - stage them directly into 2FA Setup
-                req.session.stagedUser = { 
-                    username: info.profile.username, 
-                    email: info.profile.email, 
-                    hashedPassword: '', // OAuth users have no password
+                req.session.stagedUser = {
+                    username: info.profile.username,
+                    email: info.profile.email,
+                    hashedPassword: 'oauth-only-' + crypto.randomBytes(32).toString('hex'), // Not a real password
                     otpVerified: true,  // OAuth pre-verifies emails
                 };
                 return res.redirect('/auth/setup-2fa');
@@ -246,7 +265,6 @@ router.get('/github/callback', handleOAuthCallback('github'));
 // ──────────────────────────────────────
 // FORGOT PASSWORD FLOW
 // ──────────────────────────────────────
-const crypto = require('crypto');
 const PasswordReset = require('../models/PasswordReset');
 
 router.get('/forgot-password', (req, res) => {
@@ -319,10 +337,13 @@ router.post('/reset-password/:token', async (req, res) => {
         if (password !== confirmPassword) {
             return res.render('reset-password', { title: 'Reset Password', token: req.params.token, error: 'Passwords do not match.' });
         }
+        if (!password || password.length < 8) {
+            return res.render('reset-password', { title: 'Reset Password', token: req.params.token, error: 'Password must be at least 8 characters.' });
+        }
 
         const hashedPassword = await bcrypt.hash(password, 10);
         await User.update({ password: hashedPassword }, { where: { email: reset.email } });
-        
+
         reset.used = true;
         await reset.save();
 
@@ -350,21 +371,24 @@ router.post('/delete-account', async (req, res) => {
         }
 
         const userId = req.user.id;
-        
-        // Cascade delete user data
+
+        // Cascade delete user data in a transaction
         const Post = require('../models/Post');
         const Message = require('../models/Message');
         const Notification = require('../models/Notification');
         const Bookmark = require('../models/Bookmark');
         const Draft = require('../models/Draft');
+        const sequelize = require('../config/database');
 
-        await Post.destroy({ where: { memberId: userId } });
-        await Message.destroy({ where: { senderId: userId } });
-        await Message.destroy({ where: { receiverId: userId } });
-        await Notification.destroy({ where: { recipientId: userId } });
-        await Bookmark.destroy({ where: { userId } });
-        await Draft.destroy({ where: { userId } });
-        await User.destroy({ where: { id: userId } });
+        await sequelize.transaction(async (t) => {
+            await Post.destroy({ where: { memberId: userId }, transaction: t });
+            await Message.destroy({ where: { senderId: userId }, transaction: t });
+            await Message.destroy({ where: { receiverId: userId }, transaction: t });
+            await Notification.destroy({ where: { recipientId: userId }, transaction: t });
+            await Bookmark.destroy({ where: { userId }, transaction: t });
+            await Draft.destroy({ where: { userId }, transaction: t });
+            await User.destroy({ where: { id: userId }, transaction: t });
+        });
 
         req.logout((err) => {
             req.session.destroy();

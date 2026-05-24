@@ -26,8 +26,9 @@ module.exports = function(addonManager, app, io) {
     // Unshift the middleware so it executes immediately
     app.use(async (req, res, next) => {
         // 1. Check IP level ban immediately
-        const clientIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
-        
+        const forwarded = req.headers['x-forwarded-for'];
+        const clientIp = forwarded ? forwarded.split(',')[0].trim() : req.socket.remoteAddress;
+
         if (await isIpBanned(clientIp)) {
             // Hard drop connection - saves CPU and blocks API & static assets
             return res.status(403).send('Connection Refused. You are banned from this server.');
@@ -35,11 +36,11 @@ module.exports = function(addonManager, app, io) {
 
         // 2. Check User level ban
         if (req.isAuthenticated() && req.user && req.user.isBanned) {
-            req.logout((err) => {
-                req.session.destroy();
-                return res.status(403).send('Your account has been officially suspended.');
+            return req.logout((err) => {
+                req.session.destroy(() => {
+                    return res.status(403).send('Your account has been officially suspended.');
+                });
             });
-            return;
         }
 
         next();
