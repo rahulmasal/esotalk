@@ -20,6 +20,7 @@ A modern, real-time forum platform — completely rewritten from legacy PHP to a
 - 📱 **PWA Ready** — Installable as a native app on any device
 - 🏆 **User Ranks** — Auto-calculated progression: Newbie → Active → Regular → Veteran → Elder → Legend
 - 🗑️ **GDPR Compliant** — Users can fully delete their account and all associated data
+- 📂 **Channels / Categories** — Organize conversations into channels with dedicated listing page
 - 🧩 **Plugin Engine** — Hot-pluggable addon system (mentions, reactions, badges, link previews, dark mode, and more)
 
 > For a full breakdown of all features, see [features.md](features.md).
@@ -351,13 +352,23 @@ node-esotalk/
 │   ├── uploads.js          # File upload API
 │   └── profile.js          # User profiles, avatars, drafts
 ├── views/                  # EJS templates
+│   ├── partials/           # Reusable layout partials (head, header, footer)
+│   ├── channels.ejs        # Channel/category listing
+│   ├── conversation.ejs    # Single conversation view with polls & replies
+│   ├── start-conversation.ejs
+│   └── ...
 ├── public/
-│   ├── css/                # Stylesheets
+│   ├── css/
+│   │   ├── base.css        # Legacy base styles
+│   │   ├── styles.css      # Custom styles
+│   │   ├── colors.css      # Color theme variables
+│   │   └── ...
 │   ├── js/app.js           # Keyboard shortcuts, PWA, auto-save
 │   ├── sw.js               # Service worker
 │   └── manifest.json       # PWA manifest
 ├── uploads/                # User-uploaded files
 ├── index.js                # Main server entry point
+├── .gitignore              # Standard ignores (node_modules, .env, uploads)
 └── package.json
 ```
 

@@ -10,6 +10,8 @@ esoTalk Plus is a completely rewritten, modern Node.js and Express.js forum appl
 * **Redis Sessions**: Drop-in session persistence. If the Node.js server restarts, users do not get logged out. 
 * **Real-time Event Bus**: Native `Socket.io` integration. Allows bidirectional messaging for toasts, typing notifications, and instant activity indicators.
 * **Unified Template Rendering**: Uses `EJS` templating bound strictly to the original legacy CSS wrappers ensuring backward compatibility with old themes.
+* **Template Partials**: Reusable `partials/head`, `partials/header`, and `partials/footer` components for consistent layout across all pages.
+* **Custom Stylesheets**: `colors.css` and `styles.css` for easy color scheme and visual customization without touching legacy CSS.
 
 ---
 
@@ -83,9 +85,24 @@ A custom Express middleware interception engine that fully replicates the old `E
 
 ---
 
+## 📂 Channels & Categories
+* **Channel Listing**: Dedicated `/channels` page listing all channels with conversation counts per channel.
+* **Channel Association**: Conversations can be assigned to a channel during creation via the start-conversation page.
+* **Channel Filtering**: Browse conversations filtered by channel/category.
+
+---
+
 ## 🔖 Bookmarks & Drafts
 * **Bookmarks**: Save any conversation for later. View bookmarks from your profile.
 * **Auto-Save Drafts**: Client-side script auto-saves your post content every 30 seconds via API. Never lose work again.
+
+---
+
+## ✏️ Post Editing & Deletion
+* **Edit Own Posts**: Users can edit their own posts inline with full version history tracking via the `PostEdit` model.
+* **Edit History**: View all previous versions of a post at `/post/:id/history`.
+* **Moderator Editing**: Admins and moderators can edit any post, with the editor identity recorded.
+* **Post Deletion**: Users can delete their own posts; moderators can delete any post. All deletions are logged.
 
 ---
 
